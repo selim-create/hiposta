@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
+import { WaitlistForm } from "@/components/waitlist-form";
 import { getCatalog } from "@/lib/catalog";
 import { getPublicationArticles } from "@/lib/data";
 
@@ -28,7 +29,7 @@ export default async function PublicationPage({ params }: Props) {
   const category = catalog.categories.find((item) => item.slug === publication.categorySlug);
   if (!category) notFound();
 
-  const publicationArticles = getPublicationArticles(publication.slug);
+  const publicationArticles = publication.isComingSoon ? [] : getPublicationArticles(publication.slug);
   const publicationNewsletters = catalog.newsletters.filter((newsletter) => newsletter.publicationSlug === publication.slug);
   const style = { "--publication-hero": publication.color, "--publication-ink": publication.foreground } as CSSProperties;
 
@@ -46,7 +47,8 @@ export default async function PublicationPage({ params }: Props) {
             </div>
             <div className="publication-hero__about">
               <p>{publication.longDescription}</p>
-              <dl><div><dt>Yayın ritmi</dt><dd>{publication.cadence}</dd></div><div><dt>Abone</dt><dd>{publication.reach}</dd></div><div><dt>Kategori</dt><dd>{category.name}</dd></div></dl>
+              <dl><div><dt>Yayın ritmi</dt><dd>{publication.isComingSoon ? "Hazırlanıyor" : publication.cadence}</dd></div><div><dt>Abone</dt><dd>{publication.reach}</dd></div><div><dt>Kategori</dt><dd>{category.name}</dd></div></dl>
+              {publication.isComingSoon && <div className="publication-waitlist"><p className="eyebrow">İlk sen öğren</p><h2>Yayın açıldığında haber verelim.</h2><WaitlistForm publicationSlug={publication.slug} publicationName={publication.name} /></div>}
             </div>
           </div>
         </div>
@@ -61,7 +63,7 @@ export default async function PublicationPage({ params }: Props) {
 
       <section className="publication-newsletters">
         <div className="page-shell">
-          <div className="newsletter-showcase__heading"><div><p className="eyebrow">Doğrudan gelen kutuna</p><h2>{publication.name}<br />bültenleri</h2></div><p>{publication.isComingSoon ? "Bu yayın için bültenler hazırlanıyor." : "İçerikleri siteye gelmeden, kendi ritminde takip et. Her bültenden istediğin zaman ayrılabilirsin."}</p></div>
+          <div className="newsletter-showcase__heading"><div><p className="eyebrow">Doğrudan gelen kutuna</p><h2>{publication.name}<br />bültenleri</h2></div><p>{publication.isComingSoon ? "Bu yayın için bültenler hazırlanıyor. Haber Ver listesine katılarak açılışı ilk öğrenebilirsin." : "İçerikleri siteye gelmeden, kendi ritminde takip et. Her bültenden istediğin zaman ayrılabilirsin."}</p></div>
           <div className="newsletter-grid">
             {publicationNewsletters.map((newsletter) => <NewsletterCard key={newsletter.slug} newsletter={newsletter} publication={publication} />)}
             {!publicationNewsletters.length && publication.isComingSoon && <article className="newsletter-more-card"><span>H</span><h3>Bu yayın yakında Hiposta’da.</h3><Link href="/yayinlar">Diğer yayınları keşfet <ArrowRight size={16} /></Link></article>}
