@@ -29,6 +29,17 @@ export async function POST(request: NextRequest) {
     });
 
     const payload = await response.json().catch(() => ({}));
+
+    if (response.status === 503 && payload?.accepted === true && payload?.code === "delivery_unavailable") {
+      return NextResponse.json({
+        ok: true,
+        accepted: true,
+        delivery_available: false,
+        count: Number(payload?.count ?? newsletters.length),
+        status: "confirmation_pending_delivery",
+      }, { status: 202 });
+    }
+
     return NextResponse.json(payload, { status: response.status });
   } catch {
     return NextResponse.json({ ok: false, code: "service_unavailable" }, { status: 503 });
