@@ -8,7 +8,7 @@ import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { SubscribeForm } from "@/components/subscribe-form";
 import { getCatalog } from "@/lib/catalog";
-import { getPublicationArticles } from "@/lib/data";
+import { getContent } from "@/lib/content";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -22,13 +22,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NewsletterPage({ params }: Props) {
   const slug = (await params).slug;
-  const catalog = await getCatalog();
+  const [catalog, content] = await Promise.all([getCatalog(), getContent({ newsletter: slug, limit: 12 })]);
   const newsletter = catalog.newsletters.find((item) => item.slug === slug);
   if (!newsletter) notFound();
   const publication = catalog.publications.find((item) => item.slug === newsletter.publicationSlug);
   if (!publication) notFound();
 
-  const recentArticles = getPublicationArticles(publication.slug).slice(0, 3);
+  const recentArticles = content.articles.slice(0, 3);
   const crossSell = catalog.newsletters.filter((item) => item.slug !== newsletter.slug && item.categorySlug !== newsletter.categorySlug).slice(0, 3);
   const style = { "--newsletter-hero": newsletter.accent, "--newsletter-ink": publication.foreground } as CSSProperties;
 
@@ -61,12 +61,10 @@ export default async function NewsletterPage({ params }: Props) {
         <ol>{newsletter.topics.map((topic, index) => <li key={topic}><span>0{index + 1}</span><strong>{topic}</strong><p>Editörün seçtiği veri, bağlam ve uygulanabilir kısa notlarla.</p></li>)}</ol>
       </section>
 
-      {recentArticles.length > 0 && (
-        <section className="section page-shell">
-          <div className="section-heading section-heading--rule"><div><p className="eyebrow">Son sayılardan</p><h2>{publication.name} okuma listesi</h2></div></div>
-          <div className="article-grid article-grid--three">{recentArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
-        </section>
-      )}
+      {recentArticles.length > 0 && <section className="section page-shell">
+        <div className="section-heading section-heading--rule"><div><p className="eyebrow">Son sayılardan</p><h2>{publication.name} okuma listesi</h2></div></div>
+        <div className="article-grid article-grid--three">{recentArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
+      </section>}
 
       <section className="cross-sell-section">
         <div className="page-shell">
