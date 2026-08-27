@@ -69,6 +69,20 @@ export type Article = {
   tags: string[];
 };
 
+export type NewsletterIssue = {
+  slug: string;
+  title: string;
+  preheader: string;
+  publishedAt: string;
+  displayDate: string;
+  newsletterSlug: string;
+  newsletterName: string;
+  publicationSlug: string;
+  publicationName: string;
+  introHtml?: string;
+  items?: Article[];
+};
+
 export type NewsletterBundle = {
   slug: string;
   name: string;
