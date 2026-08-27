@@ -8,7 +8,7 @@ import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { getCatalog } from "@/lib/catalog";
-import { getPublicationArticles } from "@/lib/data";
+import { getContent } from "@/lib/content";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -23,13 +23,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublicationPage({ params }: Props) {
   const slug = (await params).slug;
-  const catalog = await getCatalog();
+  const [catalog, content] = await Promise.all([getCatalog(), getContent({ publication: slug, limit: 24 })]);
   const publication = catalog.publications.find((item) => item.slug === slug);
   if (!publication) notFound();
   const category = catalog.categories.find((item) => item.slug === publication.categorySlug);
   if (!category) notFound();
 
-  const publicationArticles = publication.isComingSoon ? [] : getPublicationArticles(publication.slug);
+  const publicationArticles = publication.isComingSoon ? [] : content.articles;
   const publicationNewsletters = catalog.newsletters.filter((newsletter) => newsletter.publicationSlug === publication.slug);
   const style = { "--publication-hero": publication.color, "--publication-ink": publication.foreground } as CSSProperties;
 
@@ -54,12 +54,10 @@ export default async function PublicationPage({ params }: Props) {
         </div>
       </section>
 
-      {publicationArticles.length > 0 && (
-        <section className="section page-shell">
-          <div className="section-heading section-heading--rule"><div><p className="eyebrow">Son içerikler</p><h2>{publication.name} gündemi</h2></div><Link href={`/kategori/${category.slug}`}>Kategoriyi aç <ArrowUpRight size={15} /></Link></div>
-          <div className="article-grid article-grid--three">{publicationArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
-        </section>
-      )}
+      {publicationArticles.length > 0 && <section className="section page-shell">
+        <div className="section-heading section-heading--rule"><div><p className="eyebrow">Son içerikler</p><h2>{publication.name} gündemi</h2></div><Link href={`/kategori/${category.slug}`}>Kategoriyi aç <ArrowUpRight size={15} /></Link></div>
+        <div className="article-grid article-grid--three">{publicationArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
+      </section>}
 
       <section className="publication-newsletters">
         <div className="page-shell">
