@@ -19,6 +19,10 @@ export type Publication = {
   cadence: string;
   reach: string;
   featured?: boolean;
+  logoUrl?: string | null;
+  status?: "active" | "inactive";
+  isComingSoon?: boolean;
+  audienceCount?: number;
 };
 
 export type Newsletter = {
@@ -35,6 +39,7 @@ export type Newsletter = {
   accent: string;
   featured?: boolean;
   topics: string[];
+  audienceCount?: number;
 };
 
 export type Article = {
@@ -65,4 +70,27 @@ export type NewsletterBundle = {
   newsletterSlugs: string[];
   accent: string;
   featured?: boolean;
+};
+
+export type CatalogMeta = {
+  revision: string;
+  generatedAt: string;
+  coreVersion: string;
+};
+
+export type CatalogSnapshot = {
+  categories: Category[];
+  publications: Publication[];
+  newsletters: Newsletter[];
+  bundles: NewsletterBundle[];
+  stats: {
+    publications: number;
+    activePublications: number;
+    comingSoonPublications: number;
+    activeNewsletters: number;
+    categories: number;
+    bundles: number;
+  };
+  meta: CatalogMeta;
+  source: "core" | "mock";
 };

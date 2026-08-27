@@ -1,14 +1,20 @@
 import type { MetadataRoute } from "next";
-import { articles, categories, newsletters, publications } from "@/lib/mock-data";
+import { getCatalog } from "@/lib/catalog";
+import { articles } from "@/lib/mock-data";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hiposta.example.com";
+  const catalog = await getCatalog();
   const fixed = ["", "/yayinlar", "/bultenler", "/arama", "/premium", "/hakkimizda"];
+  const generatedAt = catalog.meta.generatedAt && catalog.meta.generatedAt !== new Date(0).toISOString()
+    ? new Date(catalog.meta.generatedAt)
+    : new Date();
+
   return [
-    ...fixed.map((path) => ({ url: `${base}${path}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: path === "" ? 1 : 0.7 })),
+    ...fixed.map((path) => ({ url: `${base}${path}`, lastModified: generatedAt, changeFrequency: "weekly" as const, priority: path === "" ? 1 : 0.7 })),
     ...articles.map((item) => ({ url: `${base}/icerik/${item.slug}`, lastModified: new Date(item.publishedAt), changeFrequency: "monthly" as const, priority: 0.8 })),
-    ...publications.map((item) => ({ url: `${base}/yayinlar/${item.slug}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 })),
-    ...newsletters.map((item) => ({ url: `${base}/bultenler/${item.slug}`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.6 })),
-    ...categories.map((item) => ({ url: `${base}/kategori/${item.slug}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 })),
+    ...catalog.publications.map((item) => ({ url: `${base}/yayinlar/${item.slug}`, lastModified: generatedAt, changeFrequency: "weekly" as const, priority: item.isComingSoon ? 0.4 : 0.7 })),
+    ...catalog.newsletters.map((item) => ({ url: `${base}/bultenler/${item.slug}`, lastModified: generatedAt, changeFrequency: "monthly" as const, priority: 0.6 })),
+    ...catalog.categories.map((item) => ({ url: `${base}/kategori/${item.slug}`, lastModified: generatedAt, changeFrequency: "weekly" as const, priority: 0.7 })),
   ];
 }

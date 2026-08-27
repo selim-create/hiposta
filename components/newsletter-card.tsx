@@ -2,10 +2,10 @@ import type { CSSProperties } from "react";
 import { ArrowUpRight, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { getPublication } from "@/lib/data";
-import type { Newsletter } from "@/lib/types";
+import type { Newsletter, Publication } from "@/lib/types";
 
-export function NewsletterCard({ newsletter }: { newsletter: Newsletter }) {
-  const publication = getPublication(newsletter.publicationSlug);
+export function NewsletterCard({ newsletter, publication: suppliedPublication }: { newsletter: Newsletter; publication?: Publication }) {
+  const publication = suppliedPublication ?? getPublication(newsletter.publicationSlug);
   if (!publication) return null;
 
   const style = { "--newsletter-accent": newsletter.accent } as CSSProperties;
@@ -22,7 +22,7 @@ export function NewsletterCard({ newsletter }: { newsletter: Newsletter }) {
         <p>{newsletter.description}</p>
       </div>
       <div className="newsletter-card__footer">
-        <span><Clock3 size={13} /> {newsletter.schedule} · {newsletter.deliveryTime}</span>
+        <span><Clock3 size={13} /> {newsletter.schedule}{newsletter.deliveryTime ? ` · ${newsletter.deliveryTime}` : ""}</span>
         <Link href={`/bultenler/${newsletter.slug}`} aria-label={`${newsletter.name} detayını gör`}>
           <ArrowUpRight size={16} />
         </Link>
