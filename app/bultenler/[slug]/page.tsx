@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { ArrowRight, Clock3, FileText, UsersRound } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Clock3, FileText, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
@@ -9,6 +9,7 @@ import { PublicationMark } from "@/components/publication-mark";
 import { SubscribeForm } from "@/components/subscribe-form";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
+import { getNewsletterIssues } from "@/lib/issues";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -22,7 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NewsletterPage({ params }: Props) {
   const slug = (await params).slug;
-  const [catalog, content] = await Promise.all([getCatalog(), getContent({ newsletter: slug, limit: 12 })]);
+  const [catalog, content, issues] = await Promise.all([
+    getCatalog(),
+    getContent({ newsletter: slug, limit: 12 }),
+    getNewsletterIssues(slug),
+  ]);
   const newsletter = catalog.newsletters.find((item) => item.slug === slug);
   if (!newsletter) notFound();
   const publication = catalog.publications.find((item) => item.slug === newsletter.publicationSlug);
@@ -61,8 +66,28 @@ export default async function NewsletterPage({ params }: Props) {
         <ol>{newsletter.topics.map((topic, index) => <li key={topic}><span>0{index + 1}</span><strong>{topic}</strong><p>Editörün seçtiği veri, bağlam ve uygulanabilir kısa notlarla.</p></li>)}</ol>
       </section>
 
+      {issues.length > 0 && (
+        <section className="issue-archive page-shell">
+          <div className="section-heading section-heading--rule">
+            <div><p className="eyebrow">Web arşivi</p><h2>Geçmiş sayılar</h2></div>
+            <span>{issues.length} sayı</span>
+          </div>
+          <div className="issue-archive__grid">
+            {issues.map((issue, index) => (
+              <Link className="issue-card" href={`/sayi/${issue.slug}`} key={issue.slug}>
+                <div className="issue-card__index">{String(index + 1).padStart(2, "0")}</div>
+                <div className="issue-card__meta"><span>{issue.displayDate}</span><span>{newsletter.name}</span></div>
+                <h3>{issue.title}</h3>
+                {issue.preheader && <p>{issue.preheader}</p>}
+                <span className="issue-card__link">Sayıyı oku <ArrowUpRight size={15} /></span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {recentArticles.length > 0 && <section className="section page-shell">
-        <div className="section-heading section-heading--rule"><div><p className="eyebrow">Son sayılardan</p><h2>{publication.name} okuma listesi</h2></div></div>
+        <div className="section-heading section-heading--rule"><div><p className="eyebrow">Son içerikler</p><h2>{publication.name} okuma listesi</h2></div></div>
         <div className="article-grid article-grid--three">{recentArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
       </section>}
 
