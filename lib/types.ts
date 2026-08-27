@@ -47,7 +47,11 @@ export type Article = {
   title: string;
   dek: string;
   publicationSlug: string;
+  publicationName?: string;
   categorySlug: string;
+  categoryName?: string;
+  categoryShortName?: string;
+  newsletterName?: string;
   author: string;
   publishedAt: string;
   displayDate: string;
@@ -58,6 +62,9 @@ export type Article = {
   heroAlt: string;
   photoCredit: string;
   body: string[];
+  teaserHtml?: string;
+  bodyHtml?: string | null;
+  locked?: boolean;
   relatedNewsletterSlug: string;
   tags: string[];
 };
