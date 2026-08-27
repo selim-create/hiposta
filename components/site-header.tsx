@@ -1,14 +1,16 @@
 import { Crown, Menu, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { categories } from "@/lib/mock-data";
+import { getCatalog } from "@/lib/catalog";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const catalog = await getCatalog();
+
   return (
     <>
       <div className="utility-bar">
         <div className="page-shell utility-bar__inner">
-          <span>17 yayın · 24 bülten</span>
+          <span>{catalog.stats.publications} yayın · {catalog.stats.activeNewsletters} bülten</span>
           <span className="utility-bar__promise">İlgi alanın kadar posta</span>
           <Link href="/bultenler">Bültenlerini yönet</Link>
         </div>
@@ -25,28 +27,15 @@ export function SiteHeader() {
           <Logo />
 
           <div className="site-header__actions">
-            <Link className="icon-link" href="/arama" aria-label="Ara">
-              <Search size={17} strokeWidth={1.8} />
-            </Link>
-            <Link className="text-link" href="/giris">
-              <UserRound size={15} /> Giriş
-            </Link>
-            <Link className="button button--primary button--small" href="/premium">
-              <Crown size={14} /> Premium
-            </Link>
+            <Link className="icon-link" href="/arama" aria-label="Ara"><Search size={17} strokeWidth={1.8} /></Link>
+            <Link className="text-link" href="/giris"><UserRound size={15} /> Giriş</Link>
+            <Link className="button button--primary button--small" href="/premium"><Crown size={14} /> Premium</Link>
           </div>
 
           <details className="mobile-menu">
-            <summary aria-label="Menüyü aç">
-              <Menu size={21} />
-            </summary>
+            <summary aria-label="Menüyü aç"><Menu size={21} /></summary>
             <nav aria-label="Mobil navigasyon">
-              <Link href="/">Gündem</Link>
-              <Link href="/yayinlar">Yayınlar</Link>
-              <Link href="/bultenler">Bültenler</Link>
-              <Link href="/arama">Ara</Link>
-              <Link href="/giris">Giriş yap</Link>
-              <Link href="/premium">Premium</Link>
+              <Link href="/">Gündem</Link><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/arama">Ara</Link><Link href="/giris">Giriş yap</Link><Link href="/premium">Premium</Link>
             </nav>
           </details>
         </div>
@@ -54,11 +43,7 @@ export function SiteHeader() {
 
       <nav className="topic-nav" aria-label="İçerik kategorileri">
         <div className="page-shell topic-nav__inner">
-          {categories.map((category) => (
-            <Link key={category.slug} href={`/kategori/${category.slug}`}>
-              {category.shortName}
-            </Link>
-          ))}
+          {catalog.categories.map((category) => <Link key={category.slug} href={`/kategori/${category.slug}`}>{category.shortName}</Link>)}
         </div>
       </nav>
     </>
