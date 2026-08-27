@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, FormEvent } from "react";
-import { ArrowRight, Check, Minus, Plus, X } from "lucide-react";
+import { ArrowRight, Check, LoaderCircle, Minus, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Category, Newsletter, NewsletterBundle, Publication } from "@/lib/types";
 
@@ -14,9 +14,10 @@ type Props = {
 
 export function NewsletterSelector({ categories, newsletters, bundles, publications }: Props) {
   const [activeCategory, setActiveCategory] = useState("all");
-  const [selected, setSelected] = useState<string[]>(["piyasa-acilisi"]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [emailMode, setEmailMode] = useState(false);
-  const [complete, setComplete] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [feedback, setFeedback] = useState("");
 
   const visible = useMemo(
     () => activeCategory === "all" ? newsletters : newsletters.filter((item) => item.categorySlug === activeCategory),
@@ -30,20 +31,44 @@ export function NewsletterSelector({ categories, newsletters, bundles, publicati
 
   function toggle(slug: string) {
     setSelected((current) => current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug]);
-    setComplete(false);
+    setState("idle");
   }
 
   function toggleBundle(bundle: NewsletterBundle) {
-    const allSelected = bundle.newsletterSlugs.every((slug) => selected.includes(slug));
+    const availableSlugs = bundle.newsletterSlugs.filter((slug) => newsletters.some((newsletter) => newsletter.slug === slug));
+    const allSelected = availableSlugs.length > 0 && availableSlugs.every((slug) => selected.includes(slug));
     setSelected((current) => allSelected
-      ? current.filter((slug) => !bundle.newsletterSlugs.includes(slug))
-      : Array.from(new Set([...current, ...bundle.newsletterSlugs])));
-    setComplete(false);
+      ? current.filter((slug) => !availableSlugs.includes(slug))
+      : Array.from(new Set([...current, ...availableSlugs])));
+    setState("idle");
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setComplete(true);
+    if (!selected.length) return;
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const consent = form.get("consent") === "on";
+    if (!email || !consent) return;
+
+    setState("loading");
+    setFeedback("");
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, newsletters: selected, consent: true }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload?.ok === false) throw new Error(payload?.code || "subscription_failed");
+      setState("success");
+      setFeedback(payload?.delivery_available === false
+        ? `${selected.length} bülten seçimin kaydedildi. Doğrulama e-postası gönderimi yakında etkinleşecek.`
+        : `${selected.length} bülten seçimin kaydedildi. Gelen kutundaki doğrulama bağlantısını onayla.`);
+    } catch {
+      setState("error");
+      setFeedback("Seçimlerin şu anda kaydedilemedi. Lütfen biraz sonra tekrar dene.");
+    }
   }
 
   return (
@@ -77,14 +102,16 @@ export function NewsletterSelector({ categories, newsletters, bundles, publicati
             })}
           </div>
 
-          <section className="bundle-strip" aria-labelledby="bundle-heading">
+          {!!bundles.length && <section className="bundle-strip" aria-labelledby="bundle-heading">
             <div className="section-heading section-heading--small">
               <p className="eyebrow">Hızlı seçim</p>
               <h2 id="bundle-heading">Hazır bülten paketleri</h2>
             </div>
             <div className="bundle-strip__grid">
               {bundles.map((bundle) => {
-                const active = bundle.newsletterSlugs.every((slug) => selected.includes(slug));
+                const availableSlugs = bundle.newsletterSlugs.filter((slug) => newsletters.some((newsletter) => newsletter.slug === slug));
+                if (!availableSlugs.length) return null;
+                const active = availableSlugs.every((slug) => selected.includes(slug));
                 return (
                   <button key={bundle.slug} type="button" onClick={() => toggleBundle(bundle)} className={active ? "active" : ""}>
                     <span style={{ background: bundle.accent }} aria-hidden="true" />
@@ -94,16 +121,16 @@ export function NewsletterSelector({ categories, newsletters, bundles, publicati
                 );
               })}
             </div>
-          </section>
+          </section>}
         </div>
 
         <aside className="selection-summary" aria-live="polite">
-          {complete ? (
+          {state === "success" ? (
             <div className="selection-summary__complete">
               <span><Check size={24} /></span>
               <h2>Seçimlerin kaydedildi.</h2>
-              <p>{selected.length} bülten için doğrulama e-postası mock olarak gönderildi.</p>
-              <button type="button" onClick={() => { setComplete(false); setEmailMode(false); }}>Seçimleri düzenle</button>
+              <p>{feedback}</p>
+              <button type="button" onClick={() => { setState("idle"); setEmailMode(false); }}>Seçimleri düzenle</button>
             </div>
           ) : (
             <>
@@ -118,9 +145,10 @@ export function NewsletterSelector({ categories, newsletters, bundles, publicati
               </div>
               {emailMode ? (
                 <form className="selection-summary__form" onSubmit={submit}>
-                  <label>E-posta adresin<input type="email" placeholder="sen@ornek.com" required autoFocus /></label>
-                  <label className="consent consent--inverse"><input type="checkbox" required /><span>Seçtiğim bültenler için ileti almayı kabul ediyorum.</span></label>
-                  <button className="button button--yellow" type="submit">Seçimi tamamla <ArrowRight size={16} /></button>
+                  <label>E-posta adresin<input name="email" type="email" placeholder="sen@ornek.com" required autoFocus disabled={state === "loading"} /></label>
+                  <label className="consent consent--inverse"><input name="consent" type="checkbox" required disabled={state === "loading"} /><span>Seçtiğim bültenler için ileti almayı kabul ediyorum.</span></label>
+                  <button className="button button--yellow" type="submit" disabled={state === "loading"}>{state === "loading" ? <><LoaderCircle size={16} className="spin" /> Kaydediliyor</> : <>Seçimi tamamla <ArrowRight size={16} /></>}</button>
+                  {state === "error" && <p className="form-feedback form-feedback--error" role="alert">{feedback}</p>}
                 </form>
               ) : (
                 <button className="button button--yellow selection-summary__button" type="button" disabled={!selected.length} onClick={() => setEmailMode(true)}>
