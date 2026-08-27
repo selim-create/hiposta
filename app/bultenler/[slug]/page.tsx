@@ -7,24 +7,29 @@ import { ArticleCard } from "@/components/article-card";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { SubscribeForm } from "@/components/subscribe-form";
-import { getNewsletter, getPublication, getPublicationArticles } from "@/lib/data";
-import { newsletters } from "@/lib/mock-data";
+import { getCatalog } from "@/lib/catalog";
+import { getPublicationArticles } from "@/lib/data";
 
 type Props = { params: Promise<{ slug: string }> };
-export const dynamicParams = false;
-export function generateStaticParams() { return newsletters.map(({ slug }) => ({ slug })); }
+export const dynamicParams = true;
+export async function generateStaticParams() { return (await getCatalog()).newsletters.map(({ slug }) => ({ slug })); }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const newsletter = getNewsletter((await params).slug);
+  const slug = (await params).slug;
+  const newsletter = (await getCatalog()).newsletters.find((item) => item.slug === slug);
   return newsletter ? { title: newsletter.name, description: newsletter.longDescription } : {};
 }
 
 export default async function NewsletterPage({ params }: Props) {
-  const newsletter = getNewsletter((await params).slug);
+  const slug = (await params).slug;
+  const catalog = await getCatalog();
+  const newsletter = catalog.newsletters.find((item) => item.slug === slug);
   if (!newsletter) notFound();
-  const publication = getPublication(newsletter.publicationSlug)!;
+  const publication = catalog.publications.find((item) => item.slug === newsletter.publicationSlug);
+  if (!publication) notFound();
+
   const recentArticles = getPublicationArticles(publication.slug).slice(0, 3);
-  const crossSell = newsletters.filter((item) => item.slug !== newsletter.slug && item.categorySlug !== newsletter.categorySlug).slice(0, 3);
+  const crossSell = catalog.newsletters.filter((item) => item.slug !== newsletter.slug && item.categorySlug !== newsletter.categorySlug).slice(0, 3);
   const style = { "--newsletter-hero": newsletter.accent, "--newsletter-ink": publication.foreground } as CSSProperties;
 
   return (
@@ -40,7 +45,11 @@ export default async function NewsletterPage({ params }: Props) {
               <p className="newsletter-detail-hero__dek">{newsletter.longDescription}</p>
             </div>
             <aside>
-              <div className="newsletter-specs"><div><Clock3 size={17} /><span><small>Gönderim</small>{newsletter.schedule} · {newsletter.deliveryTime}</span></div><div><FileText size={17} /><span><small>Format</small>{newsletter.format}</span></div><div><UsersRound size={17} /><span><small>Topluluk</small>{newsletter.audience}</span></div></div>
+              <div className="newsletter-specs">
+                <div><Clock3 size={17} /><span><small>Gönderim</small>{newsletter.schedule}{newsletter.deliveryTime ? ` · ${newsletter.deliveryTime}` : ""}</span></div>
+                <div><FileText size={17} /><span><small>Format</small>{newsletter.format}</span></div>
+                <div><UsersRound size={17} /><span><small>Topluluk</small>{newsletter.audience}</span></div>
+              </div>
               <SubscribeForm newsletterName={newsletter.name} newsletterSlugs={[newsletter.slug]} />
             </aside>
           </div>
@@ -60,7 +69,10 @@ export default async function NewsletterPage({ params }: Props) {
       )}
 
       <section className="cross-sell-section">
-        <div className="page-shell"><div className="section-heading section-heading--rule"><div><p className="eyebrow">İlgini çekebilir</p><h2>Akışına bir konu daha ekle</h2></div><Link href="/bultenler">Tümünü gör <ArrowRight size={15} /></Link></div><div className="newsletter-grid">{crossSell.map((item) => <NewsletterCard key={item.slug} newsletter={item} />)}</div></div>
+        <div className="page-shell">
+          <div className="section-heading section-heading--rule"><div><p className="eyebrow">İlgini çekebilir</p><h2>Akışına bir konu daha ekle</h2></div><Link href="/bultenler">Tümünü gör <ArrowRight size={15} /></Link></div>
+          <div className="newsletter-grid">{crossSell.map((item) => <NewsletterCard key={item.slug} newsletter={item} publication={catalog.publications.find((candidate) => candidate.slug === item.publicationSlug)} />)}</div>
+        </div>
       </section>
     </>
   );
