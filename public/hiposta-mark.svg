@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Hiposta mark</title>
+  <rect width="64" height="64" rx="13" fill="#f2f1ed"/>
+  <g transform="translate(8 7) rotate(-3 24 24)">
+    <rect x="4" y="5" width="44" height="44" rx="5" fill="#ffd72e"/>
+    <rect width="44" height="44" rx="5" fill="#2444e8"/>
+    <text x="11" y="35" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" letter-spacing="-2" fill="#ffffff">o</text>
+  </g>
+  <circle cx="53" cy="51" r="5" fill="#ff5c38"/>
+</svg>
