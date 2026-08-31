@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { ArrowUpRight, Clock3 } from "lucide-react";
 import Link from "next/link";
+import { PublicationLogo } from "@/components/publication-logo";
 import { getPublication } from "@/lib/data";
 import type { Newsletter, Publication } from "@/lib/types";
 
@@ -13,7 +14,7 @@ export function NewsletterCard({ newsletter, publication: suppliedPublication }:
   return (
     <article className="newsletter-card" style={style}>
       <div className="newsletter-card__top">
-        <span>{publication.monogram}</span>
+        <PublicationLogo publication={publication} size="small" />
         <Link href={`/yayinlar/${publication.slug}`}>{publication.name}</Link>
       </div>
       <div>
