@@ -8,18 +8,18 @@ export async function SiteHeader() {
 
   return (
     <>
-      <div className="utility-bar">
+      <div className="utility-bar utility-bar--v2">
         <div className="page-shell utility-bar__inner">
-          <span>{catalog.stats.publications} yayın · {catalog.stats.activeNewsletters} bülten</span>
-          <span className="utility-bar__promise">İlgi alanın kadar posta</span>
-          <Link href="/bultenler">Bültenlerini yönet</Link>
+          <span>Hip Medya yayın ağı</span>
+          <span className="utility-bar__promise">{catalog.stats.publications} yayın · {catalog.stats.activeNewsletters} aktif bülten</span>
+          <Link href="/bultenler">Gelen kutunu kur</Link>
         </div>
       </div>
 
-      <header className="site-header">
+      <header className="site-header site-header--v2">
         <div className="page-shell site-header__inner">
           <nav className="site-header__primary" aria-label="Ana navigasyon">
-            <Link href="/">Gündem</Link>
+            <Link href="/">Ana sayfa</Link>
             <Link href="/yayinlar">Yayınlar</Link>
             <Link href="/bultenler">Bültenler</Link>
           </nav>
@@ -35,13 +35,13 @@ export async function SiteHeader() {
           <details className="mobile-menu">
             <summary aria-label="Menüyü aç"><Menu size={21} /></summary>
             <nav aria-label="Mobil navigasyon">
-              <Link href="/">Gündem</Link><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/arama">Ara</Link><Link href="/giris">Giriş yap</Link><Link href="/premium">Premium</Link>
+              <Link href="/">Ana sayfa</Link><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/arama">Ara</Link><Link href="/giris">Giriş yap</Link><Link href="/premium">Premium</Link>
             </nav>
           </details>
         </div>
       </header>
 
-      <nav className="topic-nav" aria-label="İçerik kategorileri">
+      <nav className="topic-nav topic-nav--v2" aria-label="İçerik kategorileri">
         <div className="page-shell topic-nav__inner">
           {catalog.categories.map((category) => <Link key={category.slug} href={`/kategori/${category.slug}`}>{category.shortName}</Link>)}
         </div>
