@@ -9,10 +9,13 @@ type LogoProps = {
 function Wordmark({ inverse = false, compact = false }: Omit<LogoProps, "linked">) {
   return (
     <span className={`wordmark${inverse ? " wordmark--inverse" : ""}${compact ? " wordmark--compact" : ""}`}>
-      <span className="wordmark__name" aria-label="hiposta.">
-        hiposta<span className="wordmark__dot" aria-hidden="true">.</span>
+      <span className="wordmark__name" aria-label="Hiposta">
+        <span>hip</span>
+        <span className="wordmark__stamp" aria-hidden="true">o</span>
+        <span>sta</span>
+        <span className="wordmark__dot" aria-hidden="true">.</span>
       </span>
-      {!compact && <span className="wordmark__descriptor">seç · oku · gelen kutuna al</span>}
+      {!compact && <span className="wordmark__descriptor">Hip Medya bülten platformu</span>}
     </span>
   );
 }
