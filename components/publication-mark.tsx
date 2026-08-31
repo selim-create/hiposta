@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import { PublicationLogo } from "@/components/publication-logo";
 import type { Publication } from "@/lib/types";
 
 type PublicationMarkProps = {
@@ -16,7 +17,7 @@ export function PublicationMark({ publication, size = "medium", linked = true }:
 
   const mark = (
     <span className={`publication-mark publication-mark--${size}`} style={style}>
-      <span className="publication-mark__monogram">{publication.monogram}</span>
+      <PublicationLogo publication={publication} size={size} />
       <span className="publication-mark__name">{publication.name}</span>
     </span>
   );

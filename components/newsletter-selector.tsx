@@ -3,6 +3,7 @@
 import type { CSSProperties, FormEvent } from "react";
 import { ArrowRight, Check, LoaderCircle, Minus, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { PublicationLogo } from "@/components/publication-logo";
 import type { Category, Newsletter, NewsletterBundle, Publication } from "@/lib/types";
 
 type Props = {
@@ -91,9 +92,9 @@ export function NewsletterSelector({ categories, newsletters, bundles, publicati
               const style = { "--selector-accent": newsletter.accent } as CSSProperties;
               return (
                 <button key={newsletter.slug} className={`selector-card${isSelected ? " selected" : ""}`} style={style} onClick={() => toggle(newsletter.slug)} type="button" aria-pressed={isSelected}>
-                  <span className="selector-card__mark">{publication?.monogram}</span>
+                  {publication ? <PublicationLogo publication={publication} size="small" className="selector-card__logo" /> : <span className="selector-card__mark" aria-hidden="true">—</span>}
                   <span className="selector-card__action">{isSelected ? <Check size={15} /> : <Plus size={15} />}</span>
-                  <span className="selector-card__publication">{publication?.name}</span>
+                  <span className="selector-card__publication">{publication?.name ?? "Hiposta yayını"}</span>
                   <strong>{newsletter.name}</strong>
                   <span>{newsletter.description}</span>
                   <small>{newsletter.schedule} · {newsletter.deliveryTime}</small>

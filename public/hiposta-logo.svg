@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 112" role="img" aria-labelledby="title desc">
+  <title id="title">Hiposta</title>
+  <desc id="desc">Hiposta wordmark with blue boxed o, yellow offset shadow and orange dot.</desc>
+  <rect width="420" height="112" fill="none"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="800" fill="#11110f">
+    <text x="12" y="78" font-size="72" letter-spacing="-5">hip</text>
+    <g transform="translate(132 16) rotate(-3 36 36)">
+      <rect x="4" y="5" width="64" height="64" rx="3" fill="#ffd72e"/>
+      <rect x="0" y="0" width="64" height="64" rx="3" fill="#2444e8"/>
+      <text x="16" y="50" font-size="48" letter-spacing="-3" fill="#ffffff">o</text>
+    </g>
+    <text x="204" y="78" font-size="72" letter-spacing="-5">sta</text>
+  </g>
+  <circle cx="392" cy="70" r="8" fill="#ff5c38"/>
+</svg>
