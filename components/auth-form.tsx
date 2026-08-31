@@ -17,8 +17,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     return (
       <div className="auth-success" role="status">
         <CheckCircle2 size={32} />
-        <h2>{isRegister ? "Hesabın mock olarak oluşturuldu." : "Demo oturumun açıldı."}</h2>
-        <p>Bu prototipte gerçek kimlik doğrulama yapılmaz. Ürün akışını görmek için ana sayfaya dönebilirsin.</p>
+        <h2>{isRegister ? "Kayıt akışı önizlemesi tamamlandı." : "Giriş akışı önizlemesi tamamlandı."}</h2>
+        <p>Hesap altyapısı henüz aktif değil. Bu ekran şu anda ürün deneyimini ve arayüz akışını önizlemek için kullanılıyor.</p>
         <Link className="button button--primary" href="/">Ana sayfaya dön <ArrowRight size={16} /></Link>
       </div>
     );

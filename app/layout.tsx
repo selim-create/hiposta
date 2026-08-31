@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 import "./newsletter-issues.css";
 import "./visual-foundation-v2.css";
+import "./product-surfaces-v2.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hiposta.example.com";
 
@@ -41,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="tr">
+    <html lang="tr" data-scroll-behavior="smooth">
       <body>
         <a className="skip-link" href="#main-content">İçeriğe geç</a>
         <SiteHeader />
