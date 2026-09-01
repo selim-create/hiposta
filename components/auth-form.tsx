@@ -1,58 +1,84 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 
+const messages: Record<string, string> = {
+  invalid_email: "Geçerli bir e-posta adresi gir.",
+  weak_password: "Şifren en az 10 karakter olmalı.",
+  account_exists: "Bu e-posta adresiyle zaten bir hesap var.",
+  invalid_credentials: "E-posta adresi veya şifre hatalı.",
+  rate_limited: "Çok fazla deneme yapıldı. Bir süre sonra tekrar dene.",
+  service_unavailable: "Hesap servisine şu anda ulaşılamıyor. Biraz sonra tekrar dene.",
+};
+
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
-  const [submitted, setSubmitted] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [feedback, setFeedback] = useState("");
   const isRegister = mode === "register";
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    setState("loading");
+    setFeedback("");
+    const form = new FormData(event.currentTarget);
+    const payload = {
+      email: String(form.get("email") ?? "").trim(),
+      password: String(form.get("password") ?? ""),
+      display_name: String(form.get("name") ?? "").trim(),
+    };
+
+    try {
+      const response = await fetch(isRegister ? "/api/auth/register" : "/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.ok === false) {
+        setState("error");
+        setFeedback(messages[String(data?.code ?? "")] ?? "İşlem tamamlanamadı. Bilgilerini kontrol edip tekrar dene.");
+        return;
+      }
+
+      if (isRegister) {
+        setState("success");
+        setFeedback(data?.delivery_available === false
+          ? "Hesabın oluşturuldu. E-posta doğrulama gönderimi geliştirme ortamında henüz aktif değil; hesabına giriş yapabilirsin."
+          : "Hesabın oluşturuldu. E-posta adresine gelen doğrulama bağlantısını aç.");
+        return;
+      }
+
+      window.location.assign("/hesabim");
+    } catch {
+      setState("error");
+      setFeedback(messages.service_unavailable);
+    }
   }
 
-  if (submitted) {
+  if (state === "success" && isRegister) {
     return (
       <div className="auth-success" role="status">
         <CheckCircle2 size={32} />
-        <h2>{isRegister ? "Kayıt akışı önizlemesi tamamlandı." : "Giriş akışı önizlemesi tamamlandı."}</h2>
-        <p>Hesap altyapısı henüz aktif değil. Bu ekran şu anda ürün deneyimini ve arayüz akışını önizlemek için kullanılıyor.</p>
-        <Link className="button button--primary" href="/">Ana sayfaya dön <ArrowRight size={16} /></Link>
+        <h2>Hesabın oluşturuldu.</h2>
+        <p>{feedback}</p>
+        <Link className="button button--primary" href="/giris">Giriş yap <ArrowRight size={16} /></Link>
       </div>
     );
   }
 
   return (
     <form className="auth-form" onSubmit={submit}>
-      {isRegister && (
-        <label>
-          Adın
-          <input name="name" type="text" autoComplete="name" placeholder="Ad Soyad" required />
-        </label>
-      )}
-      <label>
-        E-posta adresin
-        <input name="email" type="email" autoComplete="email" placeholder="sen@ornek.com" required />
-      </label>
-      <label>
-        Şifren
-        <input name="password" type="password" autoComplete={isRegister ? "new-password" : "current-password"} minLength={8} placeholder="En az 8 karakter" required />
-      </label>
-      {isRegister && (
-        <label className="consent">
-          <input type="checkbox" required />
-          <span>Üyelik sözleşmesini ve kişisel veri bilgilendirmesini okudum.</span>
-        </label>
-      )}
-      <button className="button button--primary auth-form__submit" type="submit">
-        {isRegister ? "Ücretsiz hesap oluştur" : "Giriş yap"} <ArrowRight size={16} />
+      {isRegister && <label>Adın<input name="name" type="text" autoComplete="name" placeholder="Ad Soyad" required disabled={state === "loading"} /></label>}
+      <label>E-posta adresin<input name="email" type="email" autoComplete="email" placeholder="sen@ornek.com" required disabled={state === "loading"} /></label>
+      <label>Şifren<input name="password" type="password" autoComplete={isRegister ? "new-password" : "current-password"} minLength={10} placeholder="En az 10 karakter" required disabled={state === "loading"} /></label>
+      {isRegister && <label className="consent"><input type="checkbox" required disabled={state === "loading"} /><span>Üyelik sözleşmesini ve kişisel veri bilgilendirmesini okudum.</span></label>}
+      <button className="button button--primary auth-form__submit" type="submit" disabled={state === "loading"}>
+        {state === "loading" ? <><LoaderCircle size={16} className="spin" /> İşleniyor</> : <>{isRegister ? "Ücretsiz hesap oluştur" : "Giriş yap"} <ArrowRight size={16} /></>}
       </button>
-      <p className="auth-form__switch">
-        {isRegister ? "Zaten hesabın var mı?" : "Henüz hesabın yok mu?"}{" "}
-        <Link href={isRegister ? "/giris" : "/kayit-ol"}>{isRegister ? "Giriş yap" : "Kayıt ol"}</Link>
-      </p>
+      {state === "error" && <p className="form-feedback form-feedback--error" role="alert">{feedback}</p>}
+      <p className="auth-form__switch">{isRegister ? "Zaten hesabın var mı?" : "Henüz hesabın yok mu?"} <Link href={isRegister ? "/giris" : "/kayit-ol"}>{isRegister ? "Giriş yap" : "Kayıt ol"}</Link></p>
     </form>
   );
 }

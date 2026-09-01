@@ -1,5 +1,6 @@
-import { Crown, Menu, Search, UserRound } from "lucide-react";
+import { Crown, Menu, Search } from "lucide-react";
 import Link from "next/link";
+import { AccountLink } from "@/components/account-link";
 import { Logo } from "@/components/logo";
 import { getCatalog } from "@/lib/catalog";
 
@@ -28,14 +29,14 @@ export async function SiteHeader() {
 
           <div className="site-header__actions">
             <Link className="icon-link" href="/arama" aria-label="Ara"><Search size={17} strokeWidth={1.8} /></Link>
-            <Link className="text-link" href="/giris"><UserRound size={15} /> Giriş</Link>
+            <AccountLink />
             <Link className="button button--primary button--small" href="/premium"><Crown size={14} /> Premium</Link>
           </div>
 
           <details className="mobile-menu">
             <summary aria-label="Menüyü aç"><Menu size={21} /></summary>
             <nav aria-label="Mobil navigasyon">
-              <Link href="/">Ana sayfa</Link><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/arama">Ara</Link><Link href="/giris">Giriş yap</Link><Link href="/premium">Premium</Link>
+              <Link href="/">Ana sayfa</Link><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/arama">Ara</Link><Link href="/hesabim">Hesabım</Link><Link href="/giris">Giriş yap</Link><Link href="/premium">Premium</Link>
             </nav>
           </details>
         </div>

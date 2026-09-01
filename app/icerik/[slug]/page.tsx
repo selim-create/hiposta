@@ -8,7 +8,7 @@ import { ArticleCard } from "@/components/article-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { SubscribeForm } from "@/components/subscribe-form";
 import { getCatalog } from "@/lib/catalog";
-import { getContent, getContentArticle } from "@/lib/content";
+import { getContent, getContentArticle, getContentArticleForSession } from "@/lib/content";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -24,19 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: article.title,
     description: article.dek,
-    openGraph: {
-      type: "article",
-      title: article.title,
-      description: article.dek,
-      publishedTime: article.publishedAt,
-      images: [{ url: article.heroImage, alt: article.heroAlt }],
-    },
+    openGraph: { type: "article", title: article.title, description: article.dek, publishedTime: article.publishedAt, images: [{ url: article.heroImage, alt: article.heroAlt }] },
   };
 }
 
 export default async function ArticlePage({ params }: Props) {
   const slug = (await params).slug;
-  const [article, catalog] = await Promise.all([getContentArticle(slug), getCatalog()]);
+  const [article, catalog] = await Promise.all([getContentArticleForSession(slug), getCatalog()]);
   if (!article) notFound();
 
   const publication = catalog.publications.find((item) => item.slug === article.publicationSlug);
@@ -48,7 +42,7 @@ export default async function ArticlePage({ params }: Props) {
   const related = relatedPool.filter((item) => item.slug !== article.slug).slice(0, 3);
   const categoryLabel = category?.shortName || article.categoryShortName || article.categoryName || "Gündem";
   const categorySlug = category?.slug || article.categorySlug;
-  const locked = article.premium || article.locked;
+  const locked = article.premium && article.locked !== false;
 
   return (
     <article className="article-page" style={{ "--article-accent": publication.color } as CSSProperties}>
@@ -56,7 +50,7 @@ export default async function ArticlePage({ params }: Props) {
         <div className="breadcrumb"><Link href="/">Gündem</Link><span>/</span><Link href={`/kategori/${categorySlug}`}>{categoryLabel}</Link></div>
         <div className="article-header__grid">
           <div>
-            <div className="story-kicker"><PublicationMark publication={publication} size="small" /><span>{categoryLabel}</span>{locked && <span className="premium-pill"><LockKeyhole size={10} /> Premium</span>}</div>
+            <div className="story-kicker"><PublicationMark publication={publication} size="small" /><span>{categoryLabel}</span>{article.premium && <span className="premium-pill"><LockKeyhole size={10} /> Premium</span>}</div>
             <h1>{article.title}</h1>
             <p>{article.dek}</p>
             <div className="article-byline"><span><strong>{article.author}</strong><small>Hiposta yazarı</small></span><span>{article.displayDate}</span><span><Clock3 size={13} /> {article.readTime} okuma</span></div>
@@ -80,7 +74,7 @@ export default async function ArticlePage({ params }: Props) {
               <p>Bu dosyanın kalan bölümleriyle birlikte {catalog.stats.publications} yayının premium analizlerine eriş.</p>
               <ul><li><Check size={15} /> Tüm premium içerikler</li><li><Check size={15} /> Hiposta Haftalık Dergi</li><li><Check size={15} /> Reklamsız okuma deneyimi</li></ul>
               <div><Link className="button button--yellow" href="/kayit-ol?plan=premium">Premium’a geç <ArrowRight size={16} /></Link><Link href="/giris">Zaten üye misin? Giriş yap</Link></div>
-              <small>Premium üyelik altyapısı hazırlanıyor.</small>
+              <small>Premium ödeme akışı henüz aktif değil.</small>
             </section>
           ) : article.bodyHtml ? (
             <div className="article-body__html" dangerouslySetInnerHTML={{ __html: article.bodyHtml }} />
