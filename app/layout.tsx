@@ -6,6 +6,7 @@ import "./newsletter-issues.css";
 import "./visual-foundation-v2.css";
 import "./product-surfaces-v2.css";
 import "./account-v1.css";
+import "./premium-article-fix.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hiposta.example.com";
 
