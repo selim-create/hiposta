@@ -45,7 +45,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       if (isRegister) {
         setState("success");
         setFeedback(data?.delivery_available === false
-          ? "Hesabın oluşturuldu. E-posta doğrulama gönderimi geliştirme ortamında henüz aktif değil; hesabına giriş yapabilirsin."
+          ? "Hesabın oluşturuldu. Doğrulama bağlantısı hazırlandı; e-posta gönderimi geliştirme ortamında henüz aktif değil. Hesabına giriş yapabilirsin."
           : "Hesabın oluşturuldu. E-posta adresine gelen doğrulama bağlantısını aç.");
         return;
       }
@@ -73,6 +73,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       {isRegister && <label>Adın<input name="name" type="text" autoComplete="name" placeholder="Ad Soyad" required disabled={state === "loading"} /></label>}
       <label>E-posta adresin<input name="email" type="email" autoComplete="email" placeholder="sen@ornek.com" required disabled={state === "loading"} /></label>
       <label>Şifren<input name="password" type="password" autoComplete={isRegister ? "new-password" : "current-password"} minLength={10} placeholder="En az 10 karakter" required disabled={state === "loading"} /></label>
+      {!isRegister && <div className="auth-form__recovery"><Link href="/sifremi-unuttum">Şifremi unuttum</Link></div>}
       {isRegister && <label className="consent"><input type="checkbox" required disabled={state === "loading"} /><span>Üyelik sözleşmesini ve kişisel veri bilgilendirmesini okudum.</span></label>}
       <button className="button button--primary auth-form__submit" type="submit" disabled={state === "loading"}>
         {state === "loading" ? <><LoaderCircle size={16} className="spin" /> İşleniyor</> : <>{isRegister ? "Ücretsiz hesap oluştur" : "Giriş yap"} <ArrowRight size={16} /></>}
