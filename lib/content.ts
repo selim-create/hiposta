@@ -8,7 +8,7 @@ const CONTENT_PLACEHOLDER = "/content-placeholder.svg";
 
 type ApiContentItem = {
   slug: string; title: string; dek: string; author: string; hero_image_url: string | null; hero_alt: string; photo_credit: string;
-  teaser_html: string; access_level: "free" | "premium"; premium: boolean; featured: boolean; published_at: string | null; tags: string[];
+  teaser_html: string; access_level: "free" | "premium"; premium: boolean; featured: boolean; published_at: string | null; updated_at?: string | null; tags: string[];
   publication: { slug: string; name: string }; category: { slug: string; name: string; short_name: string } | null;
   newsletter: { slug: string; name: string } | null; body_html?: string | null; locked?: boolean;
 };
@@ -19,16 +19,17 @@ export type ContentSnapshot = { articles: Article[]; source: "core" | "mock" };
 
 const stripHtml = (value: string) => value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 function normalizedDate(value: string | null | undefined): Date { if (!value) return new Date(0); const iso = value.includes("T") ? value : `${value.replace(" ", "T")}Z`; const parsed = new Date(iso); return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed; }
+function isoDate(value: string | null | undefined): string | undefined { const date = normalizedDate(value); return date.getTime() === 0 ? undefined : date.toISOString(); }
 function displayDate(value: string | null | undefined): string { const date = normalizedDate(value); if (date.getTime() === 0) return ""; return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" }).format(date); }
 function readTime(...parts: Array<string | null | undefined>): string { const words = stripHtml(parts.filter(Boolean).join(" ")).split(/\s+/).filter(Boolean).length; return `${Math.max(1, Math.ceil(words / 190))} dk`; }
 
 function mapApiArticle(item: ApiContentItem): Article {
-  const published = normalizedDate(item.published_at);
+  const publishedAt = isoDate(item.published_at) ?? new Date(0).toISOString();
   return {
     slug: item.slug, title: item.title, dek: item.dek || stripHtml(item.teaser_html), publicationSlug: item.publication.slug,
     publicationName: item.publication.name, categorySlug: item.category?.slug ?? "gundem", categoryName: item.category?.name ?? "Gündem",
     categoryShortName: item.category?.short_name ?? item.category?.name ?? "Gündem", newsletterName: item.newsletter?.name,
-    author: item.author || item.publication.name, publishedAt: published.getTime() === 0 ? new Date().toISOString() : published.toISOString(),
+    author: item.author || item.publication.name, publishedAt, updatedAt: isoDate(item.updated_at),
     displayDate: displayDate(item.published_at), readTime: readTime(item.teaser_html, item.body_html), premium: item.premium, featured: item.featured,
     heroImage: item.hero_image_url || CONTENT_PLACEHOLDER, heroAlt: item.hero_alt || item.title, photoCredit: item.photo_credit || "", body: [],
     teaserHtml: item.teaser_html || "", bodyHtml: item.body_html ?? null, locked: item.locked ?? item.premium,
@@ -65,9 +66,7 @@ export async function getContentArticleForSession(slug: string): Promise<Article
       headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    if (response.status === 404) {
-      return getContentArticle(slug);
-    }
+    if (response.status === 404) return getContentArticle(slug);
     if (response.status === 401 || response.status === 403) return getContentArticle(slug);
     if (!response.ok) return getContentArticle(slug);
     const payload = (await response.json()) as ApiDetailResponse;
