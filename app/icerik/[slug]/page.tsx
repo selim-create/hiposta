@@ -43,9 +43,14 @@ export default async function ArticlePage({ params }: Props) {
   const categoryLabel = category?.shortName || article.categoryShortName || article.categoryName || "Gündem";
   const categorySlug = category?.slug || article.categorySlug;
   const locked = article.premium && article.locked !== false;
+  const articleClass = [
+    "article-page",
+    article.premium ? "article-page--premium" : "",
+    article.premium && !locked ? "article-page--premium-unlocked" : "",
+  ].filter(Boolean).join(" ");
 
   return (
-    <article className="article-page" style={{ "--article-accent": publication.color } as CSSProperties}>
+    <article className={articleClass} style={{ "--article-accent": publication.color } as CSSProperties}>
       <header className="article-header page-shell">
         <div className="breadcrumb"><Link href="/">Gündem</Link><span>/</span><Link href={`/kategori/${categorySlug}`}>{categoryLabel}</Link></div>
         <div className="article-header__grid">
