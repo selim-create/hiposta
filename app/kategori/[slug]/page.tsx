@@ -4,10 +4,12 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
+import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
+import { absoluteUrl, publicMetadata } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -15,8 +17,12 @@ export async function generateStaticParams() { return (await getCatalog()).categ
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const slug = (await params).slug;
-  const category = (await getCatalog()).categories.find((item) => item.slug === slug);
-  return category ? { title: category.name, description: category.description } : {};
+  const catalog = await getCatalog();
+  const category = catalog.categories.find((item) => item.slug === slug);
+  if (!category) return {};
+  const active = catalog.publications.some((item) => item.categorySlug === slug && item.status === "active" && !item.isComingSoon) || catalog.newsletters.some((item) => item.categorySlug === slug);
+  if (!active) return { title: category.name, description: category.description, robots: { index: false, follow: true } };
+  return publicMetadata({ title: category.name, description: category.description, path: `/kategori/${category.slug}` });
 }
 
 export default async function CategoryPage({ params }: Props) {
@@ -28,9 +34,15 @@ export default async function CategoryPage({ params }: Props) {
   const categoryArticles = content.articles;
   const categoryPublications = catalog.publications.filter((publication) => publication.categorySlug === slug);
   const categoryNewsletters = catalog.newsletters.filter((newsletter) => newsletter.categorySlug === slug);
+  const indexable = categoryPublications.some((item) => item.status === "active" && !item.isComingSoon) || categoryNewsletters.length > 0 || categoryArticles.length > 0;
+  const collectionSchema = indexable ? {
+    "@context": "https://schema.org", "@type": "CollectionPage", name: category.name, description: category.description,
+    url: absoluteUrl(`/kategori/${category.slug}`), inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
+  } : null;
 
   return (
     <>
+      {collectionSchema && <JsonLd data={collectionSchema} />}
       <section className="category-hero" style={{ "--category-color": category.color } as CSSProperties}>
         <div className="page-shell category-hero__inner">
           <div><p className="eyebrow">Hiposta kategorisi</p><h1>{category.name}</h1></div>
