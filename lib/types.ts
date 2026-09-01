@@ -54,6 +54,7 @@ export type Article = {
   newsletterName?: string;
   author: string;
   publishedAt: string;
+  updatedAt?: string;
   displayDate: string;
   readTime: string;
   premium: boolean;
@@ -74,6 +75,7 @@ export type NewsletterIssue = {
   title: string;
   preheader: string;
   publishedAt: string;
+  updatedAt?: string;
   displayDate: string;
   newsletterSlug: string;
   newsletterName: string;
