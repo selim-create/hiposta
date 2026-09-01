@@ -1,6 +1,7 @@
 import { articles as mockArticles } from "@/lib/mock-data";
 import type { Article } from "@/lib/types";
 import { getSessionToken } from "@/lib/auth";
+import { publicCoreFetchInit, publicCoreUrl } from "@/lib/public-core-fetch";
 
 const CORE_BASE_URL = (process.env.HIPOSTA_CORE_URL ?? "https://api.hiposta.com/wp-json/hiposta/v1").replace(/\/$/, "");
 const CONTENT_PLACEHOLDER = "/content-placeholder.svg";
@@ -42,7 +43,7 @@ export async function getContent(filters: ContentFilters = {}): Promise<ContentS
   const params = new URLSearchParams();
   if (filters.publication) params.set("publication", filters.publication); if (filters.category) params.set("category", filters.category); if (filters.newsletter) params.set("newsletter", filters.newsletter); if (filters.premium !== undefined) params.set("premium", filters.premium ? "true" : "false"); params.set("limit", String(Math.min(50, Math.max(1, filters.limit ?? 20))));
   try {
-    const response = await fetch(`${CORE_BASE_URL}/content?${params.toString()}`, { headers: { Accept: "application/json" }, next: { revalidate: 60 } });
+    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/content?${params.toString()}`), publicCoreFetchInit());
     if (!response.ok) throw new Error(`Hiposta Core content returned ${response.status}`);
     const payload = (await response.json()) as ApiListResponse; return { articles: payload.data.map(mapApiArticle), source: "core" };
   } catch (error) { console.warn("Hiposta Core content unavailable; using safe transition mock fallback.", error); return { articles: filterMock(filters), source: "mock" }; }
@@ -50,7 +51,7 @@ export async function getContent(filters: ContentFilters = {}): Promise<ContentS
 
 export async function getContentArticle(slug: string): Promise<Article | null> {
   try {
-    const response = await fetch(`${CORE_BASE_URL}/content/${encodeURIComponent(slug)}`, { headers: { Accept: "application/json" }, next: { revalidate: 60 } });
+    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/content/${encodeURIComponent(slug)}`), publicCoreFetchInit());
     if (response.status === 404) return null; if (!response.ok) throw new Error(`Hiposta Core content detail returned ${response.status}`);
     const payload = (await response.json()) as ApiDetailResponse; return mapApiArticle(payload.data);
   } catch (error) { console.warn("Hiposta Core content detail unavailable; using safe transition mock fallback.", error); const fallback = mockArticles.find((item) => item.slug === slug); return fallback ? safeMockArticle(fallback) : null; }
@@ -65,7 +66,6 @@ export async function getContentArticleForSession(slug: string): Promise<Article
       cache: "no-store",
     });
     if (response.status === 404) {
-      // Core 0.10.0 compatibility or genuinely missing content: use the safe public contract.
       return getContentArticle(slug);
     }
     if (response.status === 401 || response.status === 403) return getContentArticle(slug);
