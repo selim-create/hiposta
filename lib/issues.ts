@@ -1,4 +1,5 @@
 import type { Article, NewsletterIssue } from "@/lib/types";
+import { publicCoreFetchInit, publicCoreUrl } from "@/lib/public-core-fetch";
 
 const CORE_BASE_URL = (process.env.HIPOSTA_CORE_URL ?? "https://api.hiposta.com/wp-json/hiposta/v1").replace(/\/$/, "");
 const CONTENT_PLACEHOLDER = "/content-placeholder.svg";
@@ -102,10 +103,7 @@ export async function getNewsletterIssues(newsletterSlug?: string): Promise<News
   if (newsletterSlug) params.set("newsletter", newsletterSlug);
   const query = params.toString();
   try {
-    const response = await fetch(`${CORE_BASE_URL}/issues${query ? `?${query}` : ""}`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 60 },
-    });
+    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/issues${query ? `?${query}` : ""}`), publicCoreFetchInit());
     if (!response.ok) throw new Error(`Hiposta Core issues returned ${response.status}`);
     const payload = (await response.json()) as ApiIssueListResponse;
     return payload.data.map(mapIssue);
@@ -117,10 +115,7 @@ export async function getNewsletterIssues(newsletterSlug?: string): Promise<News
 
 export async function getNewsletterIssue(slug: string): Promise<NewsletterIssue | null> {
   try {
-    const response = await fetch(`${CORE_BASE_URL}/issues/${encodeURIComponent(slug)}`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 60 },
-    });
+    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/issues/${encodeURIComponent(slug)}`), publicCoreFetchInit());
     if (response.status === 404) return null;
     if (!response.ok) throw new Error(`Hiposta Core issue detail returned ${response.status}`);
     const payload = (await response.json()) as ApiIssueDetailResponse;
