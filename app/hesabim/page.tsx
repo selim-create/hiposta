@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CheckCircle2, Crown, MailCheck, MailWarning } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AccountProfileForm } from "@/components/account-profile-form";
+import { AccountSecurityPanel } from "@/components/account-security-panel";
 import { NewsletterPreferences } from "@/components/newsletter-preferences";
 import { LogoutButton } from "@/components/logout-button";
 import { getAuthSession } from "@/lib/auth";
@@ -40,7 +41,7 @@ export default async function AccountPage() {
           {session.account.email_verified ? <MailCheck size={22} /> : <MailWarning size={22} />}
           <span>E-posta</span>
           <strong>{session.account.email_verified ? "Doğrulandı" : "Doğrulama bekliyor"}</strong>
-          <p>{session.account.email_verified ? "Hesabın e-posta sahipliği doğrulandı." : "Doğrulama gönderimi geliştirme ortamında henüz aktif değil."}</p>
+          <p>{session.account.email_verified ? "Hesabın e-posta sahipliği doğrulandı." : "Doğrulama bağlantısını güvenlik bölümünden yeniden isteyebilirsin."}</p>
         </article>
         <article>
           <Crown size={22} />
@@ -59,6 +60,11 @@ export default async function AccountPage() {
       <section className="account-section account-section--profile">
         <div className="section-heading section-heading--rule"><div><p className="eyebrow">Profil</p><h2>Hesap bilgilerin</h2></div></div>
         <AccountProfileForm displayName={session.account.display_name} email={session.account.email} />
+      </section>
+
+      <section className="account-section account-section--security">
+        <div className="section-heading section-heading--rule"><div><p className="eyebrow">Güvenlik</p><h2>Hesap güvenliği</h2></div><p>Şifreni ve e-posta doğrulama durumunu buradan yönet.</p></div>
+        <AccountSecurityPanel verified={session.account.email_verified} />
       </section>
 
       <section className="account-section account-section--preferences">
