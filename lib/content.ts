@@ -60,14 +60,21 @@ export async function getContentArticleForSession(slug: string): Promise<Article
   const token = await getSessionToken();
   if (!token) return getContentArticle(slug);
   try {
-    const response = await fetch(`${CORE_BASE_URL}/content/${encodeURIComponent(slug)}`, {
-      headers: { Accept: "application/json", Authorization: `Bearer ${token}` }, cache: "no-store",
+    const response = await fetch(`${CORE_BASE_URL}/content/${encodeURIComponent(slug)}/access`, {
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
-    if (response.status === 404) return null;
+    if (response.status === 404) {
+      // Core 0.10.0 compatibility or genuinely missing content: use the safe public contract.
+      return getContentArticle(slug);
+    }
+    if (response.status === 401 || response.status === 403) return getContentArticle(slug);
     if (!response.ok) return getContentArticle(slug);
     const payload = (await response.json()) as ApiDetailResponse;
     return mapApiArticle(payload.data);
-  } catch { return getContentArticle(slug); }
+  } catch {
+    return getContentArticle(slug);
+  }
 }
 
 export async function searchContent(query: string): Promise<Article[]> { const normalized = query.trim().toLocaleLowerCase("tr-TR"); if (!normalized) return []; const { articles } = await getContent({ limit: 50 }); return articles.filter((item) => [item.title, item.dek, item.author, item.publicationName, item.categoryName, ...item.tags].filter(Boolean).join(" ").toLocaleLowerCase("tr-TR").includes(normalized)); }
