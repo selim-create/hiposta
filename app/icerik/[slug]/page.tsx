@@ -5,10 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
+import { JsonLd } from "@/components/json-ld";
 import { PublicationMark } from "@/components/publication-mark";
 import { SubscribeForm } from "@/components/subscribe-form";
 import { getCatalog } from "@/lib/catalog";
 import { getContent, getContentArticle, getContentArticleForSession } from "@/lib/content";
+import { absoluteUrl, publicMetadata } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -21,11 +23,16 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getContentArticle((await params).slug);
   if (!article) return {};
-  return {
+  return publicMetadata({
     title: article.title,
     description: article.dek,
-    openGraph: { type: "article", title: article.title, description: article.dek, publishedTime: article.publishedAt, images: [{ url: article.heroImage, alt: article.heroAlt }] },
-  };
+    path: `/icerik/${article.slug}`,
+    image: article.heroImage,
+    type: "article",
+    publishedTime: article.publishedAt,
+    modifiedTime: article.updatedAt || article.publishedAt,
+    authors: article.author ? [article.author] : undefined,
+  });
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -43,14 +50,38 @@ export default async function ArticlePage({ params }: Props) {
   const categoryLabel = category?.shortName || article.categoryShortName || article.categoryName || "Gündem";
   const categorySlug = category?.slug || article.categorySlug;
   const locked = article.premium && article.locked !== false;
-  const articleClass = [
-    "article-page",
-    article.premium ? "article-page--premium" : "",
-    article.premium && !locked ? "article-page--premium-unlocked" : "",
-  ].filter(Boolean).join(" ");
+  const articleClass = ["article-page", article.premium ? "article-page--premium" : "", article.premium && !locked ? "article-page--premium-unlocked" : ""].filter(Boolean).join(" ");
+  const canonical = absoluteUrl(`/icerik/${article.slug}`);
+  const publicDescription = article.dek || "Hiposta içeriği";
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: publicDescription,
+    image: article.heroImage ? [article.heroImage] : undefined,
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt || article.publishedAt,
+    author: article.author ? { "@type": "Person", name: article.author } : undefined,
+    publisher: { "@type": "Organization", name: "Hiposta", url: absoluteUrl("/"), logo: { "@type": "ImageObject", url: absoluteUrl("/hiposta-logo.svg") } },
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+    articleSection: categoryLabel,
+    keywords: article.tags.length ? article.tags.join(", ") : undefined,
+    isAccessibleForFree: !article.premium,
+    inLanguage: "tr-TR",
+  };
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Ana Sayfa", item: absoluteUrl("/") },
+      { "@type": "ListItem", position: 2, name: categoryLabel, item: absoluteUrl(`/kategori/${categorySlug}`) },
+      { "@type": "ListItem", position: 3, name: article.title, item: canonical },
+    ],
+  };
 
   return (
     <article className={articleClass} style={{ "--article-accent": publication.color } as CSSProperties}>
+      <JsonLd data={[articleSchema, breadcrumbSchema]} />
       <header className="article-header page-shell">
         <div className="breadcrumb"><Link href="/">Gündem</Link><span>/</span><Link href={`/kategori/${categorySlug}`}>{categoryLabel}</Link></div>
         <div className="article-header__grid">
