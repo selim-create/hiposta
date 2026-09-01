@@ -1,6 +1,14 @@
 import type { MetadataRoute } from "next";
+import { absoluteUrl } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hiposta.example.com";
-  return { rules: { userAgent: "*", allow: "/" }, sitemap: `${base}/sitemap.xml` };
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/api/", "/arama", "/giris", "/kayit-ol", "/hesabim", "/dogrula", "/sifremi-unuttum", "/sifre-sifirla"],
+    },
+    sitemap: absoluteUrl("/sitemap.xml"),
+    host: absoluteUrl("/"),
+  };
 }

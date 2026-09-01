@@ -4,12 +4,14 @@ import { ArrowRight, ArrowUpRight, Clock3, FileText, UsersRound } from "lucide-r
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
+import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { SubscribeForm } from "@/components/subscribe-form";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { getNewsletterIssues } from "@/lib/issues";
+import { absoluteUrl, publicMetadata } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -17,17 +19,17 @@ export async function generateStaticParams() { return (await getCatalog()).newsl
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const slug = (await params).slug;
-  const newsletter = (await getCatalog()).newsletters.find((item) => item.slug === slug);
-  return newsletter ? { title: newsletter.name, description: newsletter.longDescription } : {};
+  const catalog = await getCatalog();
+  const newsletter = catalog.newsletters.find((item) => item.slug === slug);
+  if (!newsletter) return {};
+  const publication = catalog.publications.find((item) => item.slug === newsletter.publicationSlug);
+  if (!publication || publication.status !== "active" || publication.isComingSoon) return { title: newsletter.name, description: newsletter.longDescription, robots: { index: false, follow: true } };
+  return publicMetadata({ title: newsletter.name, description: newsletter.longDescription, path: `/bultenler/${newsletter.slug}`, image: publication.logoUrl });
 }
 
 export default async function NewsletterPage({ params }: Props) {
   const slug = (await params).slug;
-  const [catalog, content, issues] = await Promise.all([
-    getCatalog(),
-    getContent({ newsletter: slug, limit: 12 }),
-    getNewsletterIssues(slug),
-  ]);
+  const [catalog, content, issues] = await Promise.all([getCatalog(), getContent({ newsletter: slug, limit: 12 }), getNewsletterIssues(slug)]);
   const newsletter = catalog.newsletters.find((item) => item.slug === slug);
   if (!newsletter) notFound();
   const publication = catalog.publications.find((item) => item.slug === newsletter.publicationSlug);
@@ -36,9 +38,16 @@ export default async function NewsletterPage({ params }: Props) {
   const recentArticles = content.articles.slice(0, 3);
   const crossSell = catalog.newsletters.filter((item) => item.slug !== newsletter.slug && item.categorySlug !== newsletter.categorySlug).slice(0, 3);
   const style = { "--newsletter-hero": newsletter.accent, "--newsletter-ink": publication.foreground } as CSSProperties;
+  const indexable = publication.status === "active" && !publication.isComingSoon;
+  const collectionSchema = indexable ? {
+    "@context": "https://schema.org", "@type": "CollectionPage", name: newsletter.name, description: newsletter.longDescription,
+    url: absoluteUrl(`/bultenler/${newsletter.slug}`), inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
+    about: { "@type": "Organization", name: publication.name },
+  } : null;
 
   return (
     <>
+      {collectionSchema && <JsonLd data={collectionSchema} />}
       <section className="newsletter-detail-hero" style={style}>
         <div className="page-shell newsletter-detail-hero__inner">
           <div className="breadcrumb"><Link href="/bultenler">Bültenler</Link><span>/</span><Link href={`/yayinlar/${publication.slug}`}>{publication.name}</Link></div>
@@ -68,10 +77,7 @@ export default async function NewsletterPage({ params }: Props) {
 
       {issues.length > 0 && (
         <section className="issue-archive page-shell">
-          <div className="section-heading section-heading--rule">
-            <div><p className="eyebrow">Web arşivi</p><h2>Geçmiş sayılar</h2></div>
-            <span>{issues.length} sayı</span>
-          </div>
+          <div className="section-heading section-heading--rule"><div><p className="eyebrow">Web arşivi</p><h2>Geçmiş sayılar</h2></div><span>{issues.length} sayı</span></div>
           <div className="issue-archive__grid">
             {issues.map((issue, index) => (
               <Link className="issue-card" href={`/sayi/${issue.slug}`} key={issue.slug}>
@@ -86,17 +92,9 @@ export default async function NewsletterPage({ params }: Props) {
         </section>
       )}
 
-      {recentArticles.length > 0 && <section className="section page-shell">
-        <div className="section-heading section-heading--rule"><div><p className="eyebrow">Son içerikler</p><h2>{publication.name} okuma listesi</h2></div></div>
-        <div className="article-grid article-grid--three">{recentArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
-      </section>}
+      {recentArticles.length > 0 && <section className="section page-shell"><div className="section-heading section-heading--rule"><div><p className="eyebrow">Son içerikler</p><h2>{publication.name} okuma listesi</h2></div></div><div className="article-grid article-grid--three">{recentArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div></section>}
 
-      <section className="cross-sell-section">
-        <div className="page-shell">
-          <div className="section-heading section-heading--rule"><div><p className="eyebrow">İlgini çekebilir</p><h2>Akışına bir konu daha ekle</h2></div><Link href="/bultenler">Tümünü gör <ArrowRight size={15} /></Link></div>
-          <div className="newsletter-grid">{crossSell.map((item) => <NewsletterCard key={item.slug} newsletter={item} publication={catalog.publications.find((candidate) => candidate.slug === item.publicationSlug)} />)}</div>
-        </div>
-      </section>
+      <section className="cross-sell-section"><div className="page-shell"><div className="section-heading section-heading--rule"><div><p className="eyebrow">İlgini çekebilir</p><h2>Akışına bir konu daha ekle</h2></div><Link href="/bultenler">Tümünü gör <ArrowRight size={15} /></Link></div><div className="newsletter-grid">{crossSell.map((item) => <NewsletterCard key={item.slug} newsletter={item} publication={catalog.publications.find((candidate) => candidate.slug === item.publicationSlug)} />)}</div></div></section>
     </>
   );
 }

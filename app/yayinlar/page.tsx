@@ -1,14 +1,15 @@
 import type { CSSProperties } from "react";
-import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { PublicationMark } from "@/components/publication-mark";
 import { getCatalog } from "@/lib/catalog";
+import { publicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = publicMetadata({
   title: "Yayınlar",
   description: "Hip Medya ekosistemindeki yayınları ve ilgi alanlarını keşfet.",
-};
+  path: "/yayinlar",
+});
 
 export default async function PublicationsPage() {
   const catalog = await getCatalog();
@@ -21,11 +22,7 @@ export default async function PublicationsPage() {
           <h1>Farklı dünyalar.<br /><span>Tek okuma ritmi.</span></h1>
           <div>
             <p>Ekonomiden gastronomiye, spordan tasarıma; her yayın kendi editoryal kimliğiyle Hiposta’da buluşur.</p>
-            <dl>
-              <div><dt>{catalog.stats.publications}</dt><dd>yayın</dd></div>
-              <div><dt>{catalog.stats.categories}</dt><dd>kategori</dd></div>
-              <div><dt>{catalog.stats.activeNewsletters}</dt><dd>aktif bülten</dd></div>
-            </dl>
+            <dl><div><dt>{catalog.stats.publications}</dt><dd>yayın</dd></div><div><dt>{catalog.stats.categories}</dt><dd>kategori</dd></div><div><dt>{catalog.stats.activeNewsletters}</dt><dd>aktif bülten</dd></div></dl>
           </div>
         </div>
       </section>
@@ -34,7 +31,6 @@ export default async function PublicationsPage() {
         {catalog.categories.map((category) => {
           const items = catalog.publications.filter((publication) => publication.categorySlug === category.slug);
           if (!items.length) return null;
-
           return (
             <div className="directory-group" key={category.slug}>
               <header style={{ "--category-color": category.color } as CSSProperties}>
@@ -46,14 +42,7 @@ export default async function PublicationsPage() {
                 {items.map((publication) => {
                   const comingSoon = publication.isComingSoon;
                   return (
-                    <article
-                      key={publication.slug}
-                      style={{
-                        "--tile-color": publication.color,
-                        "--tile-foreground": publication.foreground,
-                        opacity: comingSoon ? 0.52 : 1,
-                      } as CSSProperties}
-                    >
+                    <article key={publication.slug} style={{ "--tile-color": publication.color, "--tile-foreground": publication.foreground, opacity: comingSoon ? 0.52 : 1 } as CSSProperties}>
                       <PublicationMark publication={publication} linked={false} />
                       {comingSoon && <p className="eyebrow">Yakında</p>}
                       <p>{publication.longDescription}</p>
@@ -67,13 +56,7 @@ export default async function PublicationsPage() {
           );
         })}
 
-        {catalog.stats.comingSoonPublications > 0 && (
-          <div className="coming-soon">
-            <p className="eyebrow">Ağ büyüyor</p>
-            <h2>{catalog.stats.comingSoonPublications} yayın daha Hiposta’ya hazırlanıyor.</h2>
-            <p>Yakında işaretli yayınları şimdiden keşfedebilir, yayın açıldığında haber almak için ilgili sayfayı takip edebilirsin.</p>
-          </div>
-        )}
+        {catalog.stats.comingSoonPublications > 0 && <div className="coming-soon"><p className="eyebrow">Ağ büyüyor</p><h2>{catalog.stats.comingSoonPublications} yayın daha Hiposta’ya hazırlanıyor.</h2><p>Yakında işaretli yayınları şimdiden keşfedebilir, yayın açıldığında haber almak için ilgili sayfayı takip edebilirsin.</p></div>}
       </section>
     </>
   );

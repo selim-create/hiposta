@@ -4,11 +4,13 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
+import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
+import { absoluteUrl, publicMetadata } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -18,7 +20,9 @@ export async function generateStaticParams() { return (await getCatalog()).publi
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const slug = (await params).slug;
   const publication = (await getCatalog()).publications.find((item) => item.slug === slug);
-  return publication ? { title: publication.name, description: publication.longDescription } : {};
+  if (!publication) return {};
+  if (publication.status !== "active" || publication.isComingSoon) return { title: publication.name, description: publication.longDescription, robots: { index: false, follow: true } };
+  return publicMetadata({ title: publication.name, description: publication.longDescription, path: `/yayinlar/${publication.slug}`, image: publication.logoUrl });
 }
 
 export default async function PublicationPage({ params }: Props) {
@@ -32,9 +36,14 @@ export default async function PublicationPage({ params }: Props) {
   const publicationArticles = publication.isComingSoon ? [] : content.articles;
   const publicationNewsletters = catalog.newsletters.filter((newsletter) => newsletter.publicationSlug === publication.slug);
   const style = { "--publication-hero": publication.color, "--publication-ink": publication.foreground } as CSSProperties;
+  const collectionSchema = publication.status === "active" && !publication.isComingSoon ? {
+    "@context": "https://schema.org", "@type": "CollectionPage", name: publication.name, description: publication.longDescription,
+    url: absoluteUrl(`/yayinlar/${publication.slug}`), inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
+  } : null;
 
   return (
     <>
+      {collectionSchema && <JsonLd data={collectionSchema} />}
       <section className="publication-hero" style={style}>
         <div className="page-shell publication-hero__inner">
           <div className="breadcrumb"><Link href="/yayinlar">Yayınlar</Link><span>/</span><Link href={`/kategori/${category.slug}`}>{category.shortName}</Link></div>

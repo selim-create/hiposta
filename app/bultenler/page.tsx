@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import { NewsletterSelector } from "@/components/newsletter-selector";
 import { getCatalog } from "@/lib/catalog";
+import { publicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = publicMetadata({
   title: "Bültenler",
   description: "İlgi alanına, gününe ve okuma ritmine göre Hiposta bültenlerini seç.",
-};
+  path: "/bultenler",
+});
 
 export default async function NewslettersPage() {
   const catalog = await getCatalog();
