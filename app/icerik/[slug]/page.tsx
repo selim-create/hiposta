@@ -22,11 +22,6 @@ import type { Article } from "@/lib/types";
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  const { articles } = await getContent({ limit: 50 });
-  return articles.map(({ slug }) => ({ slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getContentArticle((await params).slug);
   if (!article) return {};
