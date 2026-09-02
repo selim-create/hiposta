@@ -1,5 +1,5 @@
 import { NewsletterAccountManager } from "@/components/newsletter-account-manager";
-import { NewsletterWizard } from "@/components/newsletter-wizard";
+import { NewsletterGuestWizard } from "@/components/newsletter-guest-wizard";
 import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { publicMetadata } from "@/lib/seo";
@@ -49,7 +49,7 @@ export default async function NewslettersPage() {
             publications={catalog.publications}
           />
         ) : (
-          <NewsletterWizard categories={catalog.categories} newsletters={catalog.newsletters} bundles={catalog.bundles} publications={catalog.publications} />
+          <NewsletterGuestWizard categories={catalog.categories} newsletters={catalog.newsletters} bundles={catalog.bundles} publications={catalog.publications} />
         )}
       </section>
     </>
