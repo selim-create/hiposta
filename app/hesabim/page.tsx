@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
 import { CheckCircle2, Crown, MailCheck, MailWarning } from "lucide-react";
 import { redirect } from "next/navigation";
+import { AccountContentCollection } from "@/components/account-content-collection";
 import { AccountProfileForm } from "@/components/account-profile-form";
 import { AccountSecurityPanel } from "@/components/account-security-panel";
 import { NewsletterPreferences } from "@/components/newsletter-preferences";
 import { LogoutButton } from "@/components/logout-button";
 import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
+import { getReadingHistory, getSavedContent } from "@/lib/personalisation";
 
-export const metadata: Metadata = { title: "Hesabım", description: "Hiposta hesabını ve bülten tercihlerini yönet." };
+export const metadata: Metadata = { title: "Hesabım", description: "Hiposta hesabını, kaydettiklerini, okuma geçmişini ve bülten tercihlerini yönet." };
 
 export default async function AccountPage() {
-  const [session, catalog] = await Promise.all([getAuthSession(), getCatalog()]);
+  const session = await getAuthSession();
   if (!session) redirect("/giris");
+
+  const [catalog, savedContent, readingHistory] = await Promise.all([
+    getCatalog(),
+    getSavedContent(12),
+    getReadingHistory(12),
+  ]);
 
   const premium = session.entitlements.some((item) => item.entitlement_key === "premium");
   const activeSubscriptions = session.subscriptions.filter((item) => item.status === "active");
@@ -56,6 +64,22 @@ export default async function AccountPage() {
           <p>Doğrulanmış ve aktif newsletter aboneliklerin.</p>
         </article>
       </div>
+
+      <AccountContentCollection
+        mode="saved"
+        eyebrow="Kütüphanen"
+        title="Kaydettiklerin"
+        description="Sonra dönmek istediğin içerikleri kişisel Hiposta kütüphanende tut."
+        items={savedContent}
+      />
+
+      <AccountContentCollection
+        mode="history"
+        eyebrow="Okuma geçmişi"
+        title="Son okudukların"
+        description="Giriş yapmışken açtığın içeriklere kaldığın yerden kolayca geri dön."
+        items={readingHistory}
+      />
 
       <section className="account-section account-section--profile">
         <div className="section-heading section-heading--rule"><div><p className="eyebrow">Profil</p><h2>Hesap bilgilerin</h2></div></div>
