@@ -1,6 +1,6 @@
 import type { Sponsorship } from "@/lib/types";
 
-type ApiSponsorship = {
+export type ApiSponsorship = {
   id: number;
   placement_key: string;
   disclosure_label?: string;
