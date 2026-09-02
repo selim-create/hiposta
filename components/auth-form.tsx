@@ -13,7 +13,7 @@ const messages: Record<string, string> = {
   service_unavailable: "Hesap servisine şu anda ulaşılamıyor. Biraz sonra tekrar dene.",
 };
 
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
+export function AuthForm({ mode, nextPath = "/hesabim" }: { mode: "login" | "register"; nextPath?: string }) {
   const [state, setState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [feedback, setFeedback] = useState("");
   const isRegister = mode === "register";
@@ -50,7 +50,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         return;
       }
 
-      window.location.assign("/hesabim");
+      window.location.assign(nextPath);
     } catch {
       setState("error");
       setFeedback(messages.service_unavailable);
