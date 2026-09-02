@@ -137,5 +137,5 @@ export type CatalogSnapshot = {
     bundles: number;
   };
   meta: CatalogMeta;
-  source: "core" | "mock";
+  source: "core" | "mock" | "unavailable";
 };

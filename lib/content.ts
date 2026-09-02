@@ -1,7 +1,7 @@
 import { articles as mockArticles } from "@/lib/mock-data";
 import type { Article } from "@/lib/types";
 import { getSessionToken } from "@/lib/auth";
-import { publicCoreFetchInit, publicCoreUrl } from "@/lib/public-core-fetch";
+import { allowDevelopmentMockFallback, fetchPublicCore, publicCoreFetchInit } from "@/lib/public-core-fetch";
 import { mapApiSponsorships, type ApiSponsorship } from "@/lib/sponsorship";
 
 const CORE_BASE_URL = (process.env.HIPOSTA_CORE_URL ?? "https://api.hiposta.com/wp-json/hiposta/v1").replace(/\/$/, "");
@@ -16,7 +16,7 @@ export type ApiContentItem = {
 type ApiListResponse = { data: ApiContentItem[] };
 type ApiDetailResponse = { data: ApiContentItem };
 export type ContentFilters = { publication?: string; category?: string; newsletter?: string; premium?: boolean; limit?: number };
-export type ContentSnapshot = { articles: Article[]; source: "core" | "mock" };
+export type ContentSnapshot = { articles: Article[]; source: "core" | "mock" | "unavailable" };
 
 const stripHtml = (value: string) => value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 function normalizedDate(value: string | null | undefined): Date { if (!value) return new Date(0); const iso = value.includes("T") ? value : `${value.replace(" ", "T")}Z`; const parsed = new Date(iso); return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed; }
@@ -38,25 +38,48 @@ export function mapApiArticle(item: ApiContentItem): Article {
   };
 }
 
-function safeMockArticle(item: Article): Article { const teaser = item.body[0] ?? item.dek; return { ...item, id: undefined, publicationName: item.publicationName, categoryName: item.categoryName, categoryShortName: item.categoryShortName, teaserHtml: `<p>${teaser}</p>`, bodyHtml: item.premium ? null : item.body.map((paragraph) => `<p>${paragraph}</p>`).join(""), locked: item.premium, body: item.premium ? [] : item.body, sponsorships: [] }; }
+function safeMockArticle(item: Article): Article { const teaser = item.body[0] ?? item.dek; return { ...item, id: undefined, teaserHtml: `<p>${teaser}</p>`, bodyHtml: item.premium ? null : item.body.map((paragraph) => `<p>${paragraph}</p>`).join(""), locked: item.premium, body: item.premium ? [] : item.body, sponsorships: [] }; }
 function filterMock(filters: ContentFilters): Article[] { return mockArticles.filter((item) => !filters.publication || item.publicationSlug === filters.publication).filter((item) => !filters.category || item.categorySlug === filters.category || (filters.category === "saglik-iyi-yasam" && item.categorySlug === "iyi-yasam")).filter((item) => !filters.newsletter || item.relatedNewsletterSlug === filters.newsletter).filter((item) => filters.premium === undefined || item.premium === filters.premium).slice(0, Math.min(50, Math.max(1, filters.limit ?? 20))).map(safeMockArticle); }
 
 export async function getContent(filters: ContentFilters = {}): Promise<ContentSnapshot> {
   const params = new URLSearchParams();
-  if (filters.publication) params.set("publication", filters.publication); if (filters.category) params.set("category", filters.category); if (filters.newsletter) params.set("newsletter", filters.newsletter); if (filters.premium !== undefined) params.set("premium", filters.premium ? "true" : "false"); params.set("limit", String(Math.min(50, Math.max(1, filters.limit ?? 20))));
+  if (filters.publication) params.set("publication", filters.publication);
+  if (filters.category) params.set("category", filters.category);
+  if (filters.newsletter) params.set("newsletter", filters.newsletter);
+  if (filters.premium !== undefined) params.set("premium", filters.premium ? "true" : "false");
+  params.set("limit", String(Math.min(50, Math.max(1, filters.limit ?? 20))));
+
   try {
-    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/content?${params.toString()}`), publicCoreFetchInit());
+    const response = await fetchPublicCore(`${CORE_BASE_URL}/content?${params.toString()}`, publicCoreFetchInit());
     if (!response.ok) throw new Error(`Hiposta Core content returned ${response.status}`);
-    const payload = (await response.json()) as ApiListResponse; return { articles: payload.data.map(mapApiArticle), source: "core" };
-  } catch (error) { console.warn("Hiposta Core content unavailable; using safe transition mock fallback.", error); return { articles: filterMock(filters), source: "mock" }; }
+    const payload = (await response.json()) as ApiListResponse;
+    return { articles: payload.data.map(mapApiArticle), source: "core" };
+  } catch (error) {
+    if (allowDevelopmentMockFallback()) {
+      console.warn("Hiposta Core content unavailable; explicit development mock fallback enabled.", error);
+      return { articles: filterMock(filters), source: "mock" };
+    }
+    console.error("Hiposta Core content unavailable; returning no fabricated content.", error);
+    return { articles: [], source: "unavailable" };
+  }
 }
 
 export async function getContentArticle(slug: string): Promise<Article | null> {
   try {
-    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/content/${encodeURIComponent(slug)}`), publicCoreFetchInit());
-    if (response.status === 404) return null; if (!response.ok) throw new Error(`Hiposta Core content detail returned ${response.status}`);
-    const payload = (await response.json()) as ApiDetailResponse; return mapApiArticle(payload.data);
-  } catch (error) { console.warn("Hiposta Core content detail unavailable; using safe transition mock fallback.", error); const fallback = mockArticles.find((item) => item.slug === slug); return fallback ? safeMockArticle(fallback) : null; }
+    const response = await fetchPublicCore(`${CORE_BASE_URL}/content/${encodeURIComponent(slug)}`, publicCoreFetchInit());
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Hiposta Core content detail returned ${response.status}`);
+    const payload = (await response.json()) as ApiDetailResponse;
+    return mapApiArticle(payload.data);
+  } catch (error) {
+    if (allowDevelopmentMockFallback()) {
+      console.warn("Hiposta Core content detail unavailable; explicit development mock fallback enabled.", error);
+      const fallback = mockArticles.find((item) => item.slug === slug);
+      return fallback ? safeMockArticle(fallback) : null;
+    }
+    console.error("Hiposta Core content detail unavailable; refusing fabricated fallback.", error);
+    return null;
+  }
 }
 
 export async function getContentArticleForSession(slug: string): Promise<Article | null> {
@@ -67,9 +90,7 @@ export async function getContentArticleForSession(slug: string): Promise<Article
       headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    if (response.status === 404) return getContentArticle(slug);
-    if (response.status === 401 || response.status === 403) return getContentArticle(slug);
-    if (!response.ok) return getContentArticle(slug);
+    if (response.status === 404 || response.status === 401 || response.status === 403 || !response.ok) return getContentArticle(slug);
     const payload = (await response.json()) as ApiDetailResponse;
     return mapApiArticle(payload.data);
   } catch {

@@ -1,5 +1,5 @@
 import type { Article, NewsletterIssue } from "@/lib/types";
-import { publicCoreFetchInit, publicCoreUrl } from "@/lib/public-core-fetch";
+import { fetchPublicCore, publicCoreFetchInit } from "@/lib/public-core-fetch";
 import { mapApiSponsorships, type ApiSponsorship } from "@/lib/sponsorship";
 
 const CORE_BASE_URL = (process.env.HIPOSTA_CORE_URL ?? "https://api.hiposta.com/wp-json/hiposta/v1").replace(/\/$/, "");
@@ -45,18 +45,29 @@ function mapIssue(item: ApiIssue): NewsletterIssue {
 }
 
 export async function getNewsletterIssues(newsletterSlug?: string): Promise<NewsletterIssue[]> {
-  const params = new URLSearchParams(); if (newsletterSlug) params.set("newsletter", newsletterSlug); const query = params.toString();
+  const params = new URLSearchParams();
+  if (newsletterSlug) params.set("newsletter", newsletterSlug);
+  const query = params.toString();
   try {
-    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/issues${query ? `?${query}` : ""}`), publicCoreFetchInit());
+    const response = await fetchPublicCore(`${CORE_BASE_URL}/issues${query ? `?${query}` : ""}`, publicCoreFetchInit());
     if (!response.ok) throw new Error(`Hiposta Core issues returned ${response.status}`);
-    const payload = (await response.json()) as ApiIssueListResponse; return payload.data.map(mapIssue);
-  } catch (error) { console.warn("Hiposta Core issues unavailable.", error); return []; }
+    const payload = (await response.json()) as ApiIssueListResponse;
+    return payload.data.map(mapIssue);
+  } catch (error) {
+    console.error("Hiposta Core issues unavailable.", error);
+    return [];
+  }
 }
 
 export async function getNewsletterIssue(slug: string): Promise<NewsletterIssue | null> {
   try {
-    const response = await fetch(publicCoreUrl(`${CORE_BASE_URL}/issues/${encodeURIComponent(slug)}`), publicCoreFetchInit());
-    if (response.status === 404) return null; if (!response.ok) throw new Error(`Hiposta Core issue detail returned ${response.status}`);
-    const payload = (await response.json()) as ApiIssueDetailResponse; return mapIssue(payload.data);
-  } catch (error) { console.warn("Hiposta Core issue detail unavailable.", error); return null; }
+    const response = await fetchPublicCore(`${CORE_BASE_URL}/issues/${encodeURIComponent(slug)}`, publicCoreFetchInit());
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Hiposta Core issue detail returned ${response.status}`);
+    const payload = (await response.json()) as ApiIssueDetailResponse;
+    return mapIssue(payload.data);
+  } catch (error) {
+    console.error("Hiposta Core issue detail unavailable.", error);
+    return null;
+  }
 }
