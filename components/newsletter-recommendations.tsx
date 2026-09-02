@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2, MailPlus, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2, MailPlus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { PublicationLogo } from "@/components/publication-logo";
 import type { Newsletter, Publication } from "@/lib/types";
@@ -39,26 +39,44 @@ export function NewsletterRecommendations({ items: initialItems, verified }: { i
 
   return (
     <section className="account-section account-section--recommendations newsletter-intelligence-v1">
-      <div className="section-heading section-heading--rule">
-        <div><p className="eyebrow"><Sparkles size={13} /> Newsletter Intelligence</p><h2>Sana uygun bültenler</h2></div>
+      <div className="section-heading section-heading--rule newsletter-intelligence-v1__heading">
+        <div><p className="eyebrow"><Sparkles size={13} /> Sana göre</p><h2>Sana uygun bültenler</h2></div>
         <p>Okuma, kaydetme ve açık tercihlerinden yola çıkarak henüz takip etmediğin bültenleri seçiyoruz.</p>
       </div>
-      {message ? <div className="personalisation-feedback-v2__message" role="status">{message}</div> : null}
-      {!verified ? <div className="account-empty"><h3>Abonelik için e-postanı doğrula.</h3><p>Önerileri görebilirsin; tek tıkla abone olmak için hesabındaki e-posta doğrulamasını tamamlaman yeterli.</p><Link href="/hesabim/profil">Hesabını kontrol et</Link></div> : null}
-      <div className="account-preferences__grid">
+
+      {message ? <div className="newsletter-intelligence-v1__message" role="status">{message}</div> : null}
+
+      {!verified ? (
+        <div className="newsletter-intelligence-v1__verification">
+          <div><strong>Tek tıkla abonelik için e-postanı doğrula.</strong><p>Önerileri görebilirsin; hesabını doğruladığında e-posta adresini yeniden girmeden abone olabilirsin.</p></div>
+          <Link href="/hesabim/profil">Hesabını kontrol et <ArrowRight size={14} /></Link>
+        </div>
+      ) : null}
+
+      <div className="newsletter-intelligence-v1__grid">
         {items.map(({ newsletter, publication, reason }) => {
           const isPending = pending === newsletter.slug;
           return (
-            <article key={newsletter.slug} className="account-preference-card">
-              <div className="personalised-discovery__reason"><Sparkles size={12} /> {reason}</div>
-              <div className="account-preference-card__brand">
+            <article key={newsletter.slug} className="newsletter-recommendation-card">
+              <div className="newsletter-recommendation-card__reason"><Sparkles size={12} /> <span>{reason}</span></div>
+
+              <div className="newsletter-recommendation-card__brand">
                 <PublicationLogo publication={publication} size="medium" />
-                <div><small>{publication.name}</small><strong>{newsletter.name}</strong><span>{newsletter.schedule}{newsletter.deliveryTime ? ` · ${newsletter.deliveryTime}` : ""}</span></div>
+                <div>
+                  <span className="newsletter-recommendation-card__publication">{publication.name}</span>
+                  <h3>{newsletter.name}</h3>
+                  <span className="newsletter-recommendation-card__schedule">{newsletter.schedule}{newsletter.deliveryTime ? ` · ${newsletter.deliveryTime}` : ""}</span>
+                </div>
               </div>
-              <p>{newsletter.description}</p>
-              <div className="personalisation-feedback-v2__actions">
-                <Link href={`/bultenler/${newsletter.slug}`}>Bülteni incele</Link>
-                <button type="button" disabled={!verified || Boolean(pending)} onClick={() => subscribe(newsletter.slug)}>{isPending ? <Loader2 size={14} className="spin" /> : <MailPlus size={14} />} Tek tıkla abone ol</button>
+
+              <p className="newsletter-recommendation-card__description">{newsletter.description}</p>
+
+              <div className="newsletter-recommendation-card__footer">
+                <Link className="newsletter-recommendation-card__details" href={`/bultenler/${newsletter.slug}`}>Bülteni incele <ArrowRight size={14} /></Link>
+                <button className="newsletter-recommendation-card__subscribe" type="button" disabled={!verified || Boolean(pending)} onClick={() => subscribe(newsletter.slug)}>
+                  {isPending ? <Loader2 size={14} className="spin" /> : <MailPlus size={14} />}
+                  <span>{isPending ? "Ekleniyor…" : "Tek tıkla abone ol"}</span>
+                </button>
               </div>
             </article>
           );
