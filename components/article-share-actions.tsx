@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Facebook, Link2, Linkedin, MessageCircle, Share2 } from "lucide-react";
+import { Check, Link2, MessageCircle, Share2 } from "lucide-react";
 import { useState } from "react";
 
 type Props = {
@@ -67,7 +67,7 @@ export function ArticleShareActions({ url, title, description = "", mode = "rail
           aria-label="X üzerinde paylaş"
           title="X üzerinde paylaş"
         >
-          <span aria-hidden="true" className="article-share__x">X</span>
+          <span aria-hidden="true" className="article-share__brand">X</span>
         </a>
         <a
           href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
@@ -76,7 +76,7 @@ export function ArticleShareActions({ url, title, description = "", mode = "rail
           aria-label="LinkedIn üzerinde paylaş"
           title="LinkedIn üzerinde paylaş"
         >
-          <Linkedin size={15} aria-hidden="true" />
+          <span aria-hidden="true" className="article-share__brand">in</span>
         </a>
         <a
           href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
@@ -85,7 +85,7 @@ export function ArticleShareActions({ url, title, description = "", mode = "rail
           aria-label="Facebook üzerinde paylaş"
           title="Facebook üzerinde paylaş"
         >
-          <Facebook size={15} aria-hidden="true" />
+          <span aria-hidden="true" className="article-share__brand">f</span>
         </a>
         <a
           href={`https://wa.me/?text=${encodedText}`}
