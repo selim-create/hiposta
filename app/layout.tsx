@@ -46,7 +46,31 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { colorScheme: "light", themeColor: "#f5f3ee" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const organization = { "@context": "https://schema.org", "@type": "Organization", name: "Hiposta", url: absoluteUrl("/"), logo: absoluteUrl("/hiposta-logo.svg") };
-  const website = { "@context": "https://schema.org", "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/"), description: SITE_DESCRIPTION, inLanguage: "tr-TR" };
-  return <html lang="tr" data-scroll-behavior="smooth"><body><JsonLd data={[organization, website]} /><a className="skip-link" href="#main-content">İçeriğe geç</a><SiteHeader /><main id="main-content">{children}</main><SiteFooter /></body></html>;
+  const organization = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Hiposta",
+    url: absoluteUrl("/"),
+    logo: absoluteUrl("/hiposta-logo.svg"),
+  };
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Hiposta",
+    url: absoluteUrl("/"),
+    description: SITE_DESCRIPTION,
+    inLanguage: "tr-TR",
+  };
+
+  return (
+    <html lang="tr" data-scroll-behavior="smooth">
+      <body>
+        <JsonLd data={[organization, website]} />
+        <a className="skip-link" href="#main-content">İçeriğe geç</a>
+        <SiteHeader />
+        <main id="main-content">{children}</main>
+        <SiteFooter />
+      </body>
+    </html>
+  );
 }
