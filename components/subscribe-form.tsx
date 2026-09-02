@@ -2,6 +2,7 @@
 
 import { FormEvent, useId, useState } from "react";
 import { ArrowRight, Check, LoaderCircle, Mail } from "lucide-react";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type SubscribeFormProps = {
   newsletterName: string;
@@ -23,6 +24,7 @@ export function SubscribeForm({ newsletterName, newsletterSlugs, dark = false, c
     const consent = form.get("consent") === "on";
     if (!email || !consent || !newsletterSlugs.length) return;
 
+    trackAnalyticsEvent({ eventType: "newsletter_signup_start", meta: { source: "subscribe_form" } });
     setState("loading");
     setMessage("");
 
@@ -36,6 +38,7 @@ export function SubscribeForm({ newsletterName, newsletterSlugs, dark = false, c
       if (!response.ok || payload?.ok === false) {
         throw new Error(payload?.code || "subscription_failed");
       }
+      trackAnalyticsEvent({ eventType: "newsletter_signup_complete", meta: { source: "subscribe_form" } });
       setState("success");
       setMessage(payload?.delivery_available === false
         ? "Seçimin kaydedildi. Doğrulama e-postası gönderimi yakında etkinleşecek."
