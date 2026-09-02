@@ -11,6 +11,7 @@ import "./account-v1.css";
 import "./auth-recovery-v1.css";
 import "./premium-article-fix.css";
 import "./content-experience-v2.css";
+import "./newsletter-wizard-v2.css";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
