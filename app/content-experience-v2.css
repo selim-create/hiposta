@@ -18,6 +18,53 @@
   will-change: transform;
 }
 
+/* Shared article geometry. Premium used to have this hardening alone; free articles now match it. */
+.article-page .article-header,
+.article-page .article-hero-image,
+.article-page .related-section,
+.article-page .article-neighbor-nav {
+  width: min(calc(100% - 48px), 1180px);
+}
+
+.article-page .article-hero-image {
+  overflow: hidden;
+}
+
+.article-page .article-hero-image > div {
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 620px;
+  overflow: hidden;
+}
+
+.article-page .article-hero-image img {
+  object-fit: cover;
+}
+
+.article-page .article-content {
+  width: min(calc(100% - 48px), 1100px);
+  grid-template-columns: 44px minmax(0, 640px) minmax(220px, 250px);
+  gap: clamp(24px, 3vw, 42px);
+  align-items: start;
+}
+
+.article-page .article-body,
+.article-page .article-newsletter-aside,
+.article-page .article-newsletter-aside form,
+.article-page .article-newsletter-aside input {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.article-page .article-body__lead,
+.article-page .article-body__html {
+  max-width: 640px;
+}
+
 .article-share {
   color: var(--ink);
 }
@@ -67,9 +114,11 @@
   outline-offset: 3px;
 }
 
-.article-share__x {
+.article-share__brand {
   font-size: 10px;
+  line-height: 1;
   font-weight: 900;
+  letter-spacing: -.02em;
 }
 
 .article-share__status {
@@ -192,7 +241,39 @@
   }
 }
 
+@media (max-width: 980px) {
+  .article-page .article-header,
+  .article-page .article-hero-image,
+  .article-page .article-content,
+  .article-page .related-section,
+  .article-page .article-neighbor-nav {
+    width: min(calc(100% - 32px), 1180px);
+  }
+
+  .article-page .article-content {
+    grid-template-columns: 1fr;
+  }
+
+  .article-page .article-newsletter-aside {
+    position: static;
+    max-width: 640px;
+  }
+}
+
 @media (max-width: 720px) {
+  .article-page .article-header,
+  .article-page .article-hero-image,
+  .article-page .article-content,
+  .article-page .related-section,
+  .article-page .article-neighbor-nav {
+    width: min(calc(100% - 28px), 700px);
+  }
+
+  .article-page .article-hero-image > div {
+    aspect-ratio: 4 / 3;
+    max-height: none;
+  }
+
   .article-share--inline {
     margin-top: 18px;
   }
