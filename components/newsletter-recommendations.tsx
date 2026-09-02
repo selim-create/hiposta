@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Loader2, MailPlus, Sparkles } from "lucide-react";
+import { Loader2, MailPlus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { PublicationLogo } from "@/components/publication-logo";
 import type { Newsletter, Publication } from "@/lib/types";
