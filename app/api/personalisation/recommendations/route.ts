@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { coreAuthUrl, getSessionToken, SESSION_COOKIE } from "@/lib/auth";
+import { mapApiArticle, type ApiContentItem } from "@/lib/content";
+
+type CorePayload = {
+  ok?: boolean;
+  data?: {
+    items?: Array<{ content: ApiContentItem; score: number; reason: string }>;
+    meta?: Record<string, unknown>;
+  };
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,8 +22,20 @@ export async function GET(request: NextRequest) {
       cache: "no-store",
     });
 
-    const payload = await core.json().catch(() => ({}));
-    const response = NextResponse.json(payload, { status: core.status });
+    const payload = await core.json().catch(() => ({})) as CorePayload;
+    const body = core.ok && payload.ok && payload.data
+      ? {
+          ok: true,
+          data: {
+            items: Array.isArray(payload.data.items)
+              ? payload.data.items.map((item) => ({ article: mapApiArticle(item.content), score: Number(item.score) || 0, reason: String(item.reason || "Senin için seçildi") }))
+              : [],
+            meta: payload.data.meta ?? {},
+          },
+        }
+      : payload;
+
+    const response = NextResponse.json(body, { status: core.status });
     response.headers.set("Cache-Control", "private, no-store");
     if (core.status === 401) response.cookies.delete(SESSION_COOKIE);
     return response;
