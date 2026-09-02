@@ -1,0 +1,53 @@
+/* Hiposta account-aware newsletter management */
+.newsletter-directory-hero--account { background: linear-gradient(115deg, rgba(49,87,255,.08), var(--v2-paper) 58%); }
+.newsletter-account-manager { max-width: 1180px; margin: 0 auto; padding-bottom: 54px; }
+.newsletter-account-status { min-height: 96px; padding: 20px 24px; display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 24px; align-items: center; border: 1px solid #1a1b1f; background: #15161a; color: white; }
+.newsletter-account-status__identity { min-width: 0; display: flex; align-items: center; gap: 14px; }
+.newsletter-account-status__identity > div { min-width: 0; }
+.newsletter-account-status__identity small,.newsletter-account-status__identity strong,.newsletter-account-status__identity span { display: block; }
+.newsletter-account-status__identity small { color: #8ea0ff; font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .08em; }
+.newsletter-account-status__identity strong { margin-top: 4px; overflow: hidden; text-overflow: ellipsis; font-size: 13px; white-space: nowrap; }
+.newsletter-account-status__identity span { margin-top: 4px; color: rgba(255,255,255,.58); font-size: 9px; }
+.newsletter-account-status__count { min-width: 96px; text-align: center; }
+.newsletter-account-status__count strong,.newsletter-account-status__count span { display: block; }
+.newsletter-account-status__count strong { font-size: 30px; line-height: 1; letter-spacing: -.06em; }
+.newsletter-account-status__count span { margin-top: 4px; color: rgba(255,255,255,.56); font-size: 8px; text-transform: uppercase; }
+.newsletter-account-status > a { color: white; font-size: 9px; font-weight: 850; text-transform: uppercase; }
+.newsletter-account-verify { margin-top: 22px; padding: 24px; display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: 18px; align-items: center; border: 1px solid #d6ae42; background: #fff8df; }
+.newsletter-account-verify h2 { margin: 0; font-size: 23px; letter-spacing: -.045em; }
+.newsletter-account-verify p { margin: 6px 0 0; color: #6c6653; font-family: Georgia,serif; font-size: 11px; line-height: 1.5; }
+.newsletter-account-bundles { margin-top: 58px; }
+.newsletter-account-bundles > header,.newsletter-account-list > header { margin-bottom: 22px; display: flex; justify-content: space-between; gap: 30px; align-items: end; border-bottom: 1px solid #1a1b1f; padding-bottom: 18px; }
+.newsletter-account-bundles > header h2,.newsletter-account-list > header h2 { margin: 8px 0 0; font-size: 34px; letter-spacing: -.055em; }
+.newsletter-account-bundles > header > p,.newsletter-account-list > header > p { max-width: 500px; margin: 0; color: #6d6b65; font-family: Georgia,serif; font-size: 11px; line-height: 1.5; }
+.newsletter-account-bundles > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.newsletter-account-bundles button { min-height: 150px; padding: 22px; display: grid; grid-template-columns: 38px 1fr; gap: 16px; text-align: left; border: 1px solid var(--line); background: #15161a; color: white; cursor: pointer; }
+.newsletter-account-bundles button:disabled { opacity: .5; cursor: not-allowed; }
+.newsletter-account-bundles button > span { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; }
+.newsletter-account-bundles button small { color: color-mix(in srgb,var(--wizard-accent) 80%,white); font-size: 8px; font-weight: 850; text-transform: uppercase; }
+.newsletter-account-bundles button strong { display: block; margin-top: 6px; font-size: 25px; }
+.newsletter-account-bundles button p { margin: 8px 0; color: rgba(255,255,255,.62); font-family: Georgia,serif; font-size: 11px; line-height: 1.5; }
+.newsletter-account-bundles button em { font-size: 8px; font-style: normal; text-transform: uppercase; }
+.newsletter-account-bundles button.is-selected { box-shadow: inset 0 0 0 2px var(--wizard-accent); }
+.newsletter-account-list { margin-top: 70px; }
+.newsletter-account-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.newsletter-account-grid article { min-width: 0; min-height: 280px; padding: 24px; display: flex; flex-direction: column; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: white; box-shadow: inset 0 4px 0 var(--wizard-accent); }
+.newsletter-account-grid article.is-selected { background: color-mix(in srgb,var(--wizard-accent) 7%,white); box-shadow: inset 0 0 0 2px var(--wizard-accent), inset 0 4px 0 var(--wizard-accent); }
+.newsletter-account-card__brand { min-height: 38px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.newsletter-account-card__brand > span { color: #77756e; font-size: 8px; font-weight: 850; text-transform: uppercase; }
+.newsletter-account-grid h3 { margin: 22px 0 0; font-size: 28px; line-height: .96; letter-spacing: -.055em; }
+.newsletter-account-grid article > p { margin: 16px 0 0; color: #706e67; font-family: Georgia,serif; font-size: 11px; line-height: 1.55; }
+.newsletter-account-grid article > small { margin-top: auto; padding-top: 22px; color: #77756e; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.newsletter-account-grid article > button { margin-top: 14px; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #1a1b1f; background: transparent; color: var(--ink); font-size: 9px; font-weight: 850; cursor: pointer; }
+.newsletter-account-grid article.is-selected > button { background: #15161a; color: white; }
+.newsletter-account-grid article > button:disabled { opacity: .45; cursor: not-allowed; }
+.newsletter-account-savebar { position: sticky; bottom: 16px; z-index: 25; margin-top: 28px; padding: 16px 18px; display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 18px; align-items: center; border: 1px solid #1a1b1f; background: rgba(21,22,26,.97); color: white; box-shadow: 0 20px 60px rgba(18,18,16,.18); backdrop-filter: blur(12px); }
+.newsletter-account-savebar strong,.newsletter-account-savebar span { display: block; }
+.newsletter-account-savebar strong { font-size: 12px; }
+.newsletter-account-savebar span { margin-top: 3px; color: rgba(255,255,255,.55); font-size: 8px; }
+.newsletter-account-savebar > p { margin: 0; color: #9be2bb; font-size: 9px; }
+.newsletter-account-savebar > p.is-error { color: #ffb2a9; }
+.newsletter-account-savebar .button { min-width: 190px; justify-content: center; }
+
+@media(max-width:980px){.newsletter-account-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.newsletter-account-bundles>div{grid-template-columns:1fr}.newsletter-account-savebar{grid-template-columns:1fr auto}.newsletter-account-savebar>p{grid-column:1/-1;grid-row:1}}
+@media(max-width:720px){.newsletter-account-status{grid-template-columns:1fr auto}.newsletter-account-status>a{grid-column:1/-1}.newsletter-account-verify{grid-template-columns:32px 1fr}.newsletter-account-verify .button{grid-column:1/-1;width:100%;justify-content:center}.newsletter-account-bundles>header,.newsletter-account-list>header{display:block}.newsletter-account-bundles>header>p,.newsletter-account-list>header>p{margin-top:10px}.newsletter-account-grid{grid-template-columns:1fr}.newsletter-account-savebar{bottom:8px;grid-template-columns:1fr}.newsletter-account-savebar>p{grid-column:auto;grid-row:auto}.newsletter-account-savebar .button{width:100%}}
