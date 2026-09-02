@@ -8,6 +8,8 @@ export type PersonalisationState = {
   content_id: number;
   saved: boolean;
   saved_at: string | null;
+  dismissed: boolean;
+  dismissed_at: string | null;
   first_viewed_at: string | null;
   last_viewed_at: string | null;
   view_count: number;
@@ -28,6 +30,7 @@ export type RecommendationMeta = {
   strategy: string;
   signal_count: number;
   active_subscription_count: number;
+  preference_count: number;
   cold_start: boolean;
 };
 
@@ -35,6 +38,21 @@ export type RecommendationSnapshot = {
   items: RecommendationItem[];
   meta: RecommendationMeta;
 };
+
+export type PersonalisationPreference = {
+  entity_type: "category" | "publication";
+  entity_id: number;
+  entity_name: string;
+  weight: number;
+};
+
+export type RecommendationFeedbackAction =
+  | "dismiss_content"
+  | "restore_content"
+  | "more_category"
+  | "less_category"
+  | "more_publication"
+  | "less_publication";
 
 type ApiPersonalisedContentItem = {
   content: ApiContentItem;
@@ -55,6 +73,7 @@ type ApiRecommendationResponse = {
     meta?: Partial<RecommendationMeta>;
   };
 };
+type ApiPreferenceResponse = { ok?: boolean; data?: PersonalisationPreference[] };
 
 async function privateGet(path: string): Promise<ApiPersonalisedContentItem[]> {
   const token = await getSessionToken();
@@ -89,7 +108,7 @@ export async function getReadingHistory(limit = 12): Promise<PersonalisedContent
 export async function getRecommendations(limit = 12): Promise<RecommendationSnapshot> {
   const empty: RecommendationSnapshot = {
     items: [],
-    meta: { strategy: "deterministic_v1", signal_count: 0, active_subscription_count: 0, cold_start: true },
+    meta: { strategy: "deterministic_v2", signal_count: 0, active_subscription_count: 0, preference_count: 0, cold_start: true },
   };
   const token = await getSessionToken();
   if (!token) return empty;
@@ -111,13 +130,30 @@ export async function getRecommendations(limit = 12): Promise<RecommendationSnap
         reason: typeof item.reason === "string" && item.reason.trim() ? item.reason.trim() : "Senin için seçildi",
       })),
       meta: {
-        strategy: payload.data.meta?.strategy ?? "deterministic_v1",
+        strategy: payload.data.meta?.strategy ?? "deterministic_v2",
         signal_count: Number(payload.data.meta?.signal_count ?? 0),
         active_subscription_count: Number(payload.data.meta?.active_subscription_count ?? 0),
+        preference_count: Number(payload.data.meta?.preference_count ?? 0),
         cold_start: Boolean(payload.data.meta?.cold_start),
       },
     };
   } catch {
     return empty;
+  }
+}
+
+export async function getPersonalisationPreferences(): Promise<PersonalisationPreference[]> {
+  const token = await getSessionToken();
+  if (!token) return [];
+  try {
+    const response = await fetch(`${CORE_BASE_URL}/me/preferences`, {
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!response.ok) return [];
+    const payload = await response.json() as ApiPreferenceResponse;
+    return payload.ok && Array.isArray(payload.data) ? payload.data : [];
+  } catch {
+    return [];
   }
 }
