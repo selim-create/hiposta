@@ -16,6 +16,7 @@ import "./newsletter-account-manager.css";
 import "./sponsorship-v1.css";
 import "./personalisation-v1.css";
 import "./personalised-discovery-v1.css";
+import "./trust-corporate-v1.css";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
