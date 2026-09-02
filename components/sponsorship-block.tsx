@@ -1,4 +1,4 @@
-import Image from "next/image";
+import type { CSSProperties } from "react";
 import type { Sponsorship } from "@/lib/types";
 
 type Props = {
@@ -19,13 +19,23 @@ export function SponsorshipBlock({ sponsorship, compact = false }: Props) {
 
       <div className="sponsorship-block__body">
         {sponsorship.imageUrl && (
-          <div className="sponsorship-block__image">
-            <Image src={sponsorship.imageUrl} alt="" fill sizes={compact ? "180px" : "(max-width: 760px) 100vw, 360px"} />
-          </div>
+          <div
+            className="sponsorship-block__image"
+            role="img"
+            aria-label={`${sponsorship.brand.name} sponsor görseli`}
+            style={{ backgroundImage: `url(${JSON.stringify(sponsorship.imageUrl).slice(1, -1)})` } as CSSProperties}
+          />
         )}
 
         <div className="sponsorship-block__copy">
-          {sponsorship.brand.logoUrl && <img className="sponsorship-block__logo" src={sponsorship.brand.logoUrl} alt={`${sponsorship.brand.name} logosu`} />}
+          {sponsorship.brand.logoUrl && (
+            <span
+              className="sponsorship-block__logo"
+              role="img"
+              aria-label={`${sponsorship.brand.name} logosu`}
+              style={{ backgroundImage: `url(${JSON.stringify(sponsorship.brand.logoUrl).slice(1, -1)})` } as CSSProperties}
+            />
+          )}
           {sponsorship.headline && <h2>{sponsorship.headline}</h2>}
           {sponsorship.bodyText && <p>{sponsorship.bodyText}</p>}
           {href && (
