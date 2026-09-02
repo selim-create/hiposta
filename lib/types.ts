@@ -42,6 +42,25 @@ export type Newsletter = {
   audienceCount?: number;
 };
 
+export type Sponsorship = {
+  id: number;
+  placementKey: "article_inline" | "article_end" | "newsletter_top" | "newsletter_mid" | "newsletter_footer" | string;
+  disclosureLabel: string;
+  headline: string;
+  bodyText: string;
+  ctaText: string;
+  ctaUrl: string | null;
+  imageUrl: string | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  brand: {
+    name: string;
+    slug: string;
+    logoUrl: string | null;
+    websiteUrl: string | null;
+  };
+};
+
 export type Article = {
   slug: string;
   title: string;
@@ -68,6 +87,7 @@ export type Article = {
   locked?: boolean;
   relatedNewsletterSlug: string;
   tags: string[];
+  sponsorships?: Sponsorship[];
 };
 
 export type NewsletterIssue = {
@@ -83,6 +103,7 @@ export type NewsletterIssue = {
   publicationName: string;
   introHtml?: string;
   items?: Article[];
+  sponsorships?: Sponsorship[];
 };
 
 export type NewsletterBundle = {
