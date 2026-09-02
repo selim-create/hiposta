@@ -2,6 +2,7 @@ import { articles as mockArticles } from "@/lib/mock-data";
 import type { Article } from "@/lib/types";
 import { getSessionToken } from "@/lib/auth";
 import { publicCoreFetchInit, publicCoreUrl } from "@/lib/public-core-fetch";
+import { mapApiSponsorships, type ApiSponsorship } from "@/lib/sponsorship";
 
 const CORE_BASE_URL = (process.env.HIPOSTA_CORE_URL ?? "https://api.hiposta.com/wp-json/hiposta/v1").replace(/\/$/, "");
 const CONTENT_PLACEHOLDER = "/content-placeholder.svg";
@@ -10,7 +11,7 @@ type ApiContentItem = {
   slug: string; title: string; dek: string; author: string; hero_image_url: string | null; hero_alt: string; photo_credit: string;
   teaser_html: string; access_level: "free" | "premium"; premium: boolean; featured: boolean; published_at: string | null; updated_at?: string | null; tags: string[];
   publication: { slug: string; name: string }; category: { slug: string; name: string; short_name: string } | null;
-  newsletter: { slug: string; name: string } | null; body_html?: string | null; locked?: boolean;
+  newsletter: { slug: string; name: string } | null; body_html?: string | null; locked?: boolean; sponsorships?: ApiSponsorship[];
 };
 type ApiListResponse = { data: ApiContentItem[] };
 type ApiDetailResponse = { data: ApiContentItem };
@@ -33,11 +34,11 @@ function mapApiArticle(item: ApiContentItem): Article {
     displayDate: displayDate(item.published_at), readTime: readTime(item.teaser_html, item.body_html), premium: item.premium, featured: item.featured,
     heroImage: item.hero_image_url || CONTENT_PLACEHOLDER, heroAlt: item.hero_alt || item.title, photoCredit: item.photo_credit || "", body: [],
     teaserHtml: item.teaser_html || "", bodyHtml: item.body_html ?? null, locked: item.locked ?? item.premium,
-    relatedNewsletterSlug: item.newsletter?.slug ?? "", tags: Array.isArray(item.tags) ? item.tags : [],
+    relatedNewsletterSlug: item.newsletter?.slug ?? "", tags: Array.isArray(item.tags) ? item.tags : [], sponsorships: mapApiSponsorships(item.sponsorships),
   };
 }
 
-function safeMockArticle(item: Article): Article { const teaser = item.body[0] ?? item.dek; return { ...item, publicationName: item.publicationName, categoryName: item.categoryName, categoryShortName: item.categoryShortName, teaserHtml: `<p>${teaser}</p>`, bodyHtml: item.premium ? null : item.body.map((paragraph) => `<p>${paragraph}</p>`).join(""), locked: item.premium, body: item.premium ? [] : item.body }; }
+function safeMockArticle(item: Article): Article { const teaser = item.body[0] ?? item.dek; return { ...item, publicationName: item.publicationName, categoryName: item.categoryName, categoryShortName: item.categoryShortName, teaserHtml: `<p>${teaser}</p>`, bodyHtml: item.premium ? null : item.body.map((paragraph) => `<p>${paragraph}</p>`).join(""), locked: item.premium, body: item.premium ? [] : item.body, sponsorships: [] }; }
 function filterMock(filters: ContentFilters): Article[] { return mockArticles.filter((item) => !filters.publication || item.publicationSlug === filters.publication).filter((item) => !filters.category || item.categorySlug === filters.category || (filters.category === "saglik-iyi-yasam" && item.categorySlug === "iyi-yasam")).filter((item) => !filters.newsletter || item.relatedNewsletterSlug === filters.newsletter).filter((item) => filters.premium === undefined || item.premium === filters.premium).slice(0, Math.min(50, Math.max(1, filters.limit ?? 20))).map(safeMockArticle); }
 
 export async function getContent(filters: ContentFilters = {}): Promise<ContentSnapshot> {

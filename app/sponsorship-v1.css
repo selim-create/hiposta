@@ -1,0 +1,130 @@
+.sponsorship-block {
+  margin: 32px 0;
+  border: 1px solid rgba(17, 17, 15, 0.14);
+  background: #f8f6f1;
+  overflow: hidden;
+}
+
+.sponsorship-block__disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(17, 17, 15, 0.1);
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sponsorship-block__disclosure span {
+  color: #2444e8;
+  font-weight: 800;
+}
+
+.sponsorship-block__disclosure strong {
+  color: #11110f;
+  font-weight: 800;
+}
+
+.sponsorship-block__body {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  min-width: 0;
+}
+
+.sponsorship-block__image {
+  min-height: 230px;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.sponsorship-block__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding: 28px;
+}
+
+.sponsorship-block__logo {
+  width: 112px;
+  height: 34px;
+  margin-bottom: 18px;
+  background-position: left center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.sponsorship-block__copy h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.sponsorship-block__copy p {
+  margin: 14px 0 0;
+  color: #56544e;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.sponsorship-block__copy a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid currentColor;
+  color: #11110f;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sponsorship-block--compact {
+  margin: 26px 0;
+}
+
+.sponsorship-block--compact .sponsorship-block__body {
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+}
+
+.sponsorship-block--compact .sponsorship-block__image {
+  min-height: 170px;
+}
+
+.sponsorship-block--compact .sponsorship-block__copy {
+  padding: 22px;
+}
+
+.sponsorship-block--compact .sponsorship-block__copy h2 {
+  font-size: clamp(20px, 2.3vw, 30px);
+}
+
+@media (max-width: 760px) {
+  .sponsorship-block__disclosure {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sponsorship-block__body,
+  .sponsorship-block--compact .sponsorship-block__body {
+    grid-template-columns: 1fr;
+  }
+
+  .sponsorship-block__image,
+  .sponsorship-block--compact .sponsorship-block__image {
+    min-height: 200px;
+  }
+
+  .sponsorship-block__copy,
+  .sponsorship-block--compact .sponsorship-block__copy {
+    padding: 20px;
+  }
+}
