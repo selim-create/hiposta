@@ -62,6 +62,7 @@ export type Sponsorship = {
 };
 
 export type Article = {
+  id?: number;
   slug: string;
   title: string;
   dek: string;

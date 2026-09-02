@@ -7,8 +7,8 @@ import { mapApiSponsorships, type ApiSponsorship } from "@/lib/sponsorship";
 const CORE_BASE_URL = (process.env.HIPOSTA_CORE_URL ?? "https://api.hiposta.com/wp-json/hiposta/v1").replace(/\/$/, "");
 const CONTENT_PLACEHOLDER = "/content-placeholder.svg";
 
-type ApiContentItem = {
-  slug: string; title: string; dek: string; author: string; hero_image_url: string | null; hero_alt: string; photo_credit: string;
+export type ApiContentItem = {
+  id: number; slug: string; title: string; dek: string; author: string; hero_image_url: string | null; hero_alt: string; photo_credit: string;
   teaser_html: string; access_level: "free" | "premium"; premium: boolean; featured: boolean; published_at: string | null; updated_at?: string | null; tags: string[];
   publication: { slug: string; name: string }; category: { slug: string; name: string; short_name: string } | null;
   newsletter: { slug: string; name: string } | null; body_html?: string | null; locked?: boolean; sponsorships?: ApiSponsorship[];
@@ -24,10 +24,10 @@ function isoDate(value: string | null | undefined): string | undefined { const d
 function displayDate(value: string | null | undefined): string { const date = normalizedDate(value); if (date.getTime() === 0) return ""; return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" }).format(date); }
 function readTime(...parts: Array<string | null | undefined>): string { const words = stripHtml(parts.filter(Boolean).join(" ")).split(/\s+/).filter(Boolean).length; return `${Math.max(1, Math.ceil(words / 190))} dk`; }
 
-function mapApiArticle(item: ApiContentItem): Article {
+export function mapApiArticle(item: ApiContentItem): Article {
   const publishedAt = isoDate(item.published_at) ?? new Date(0).toISOString();
   return {
-    slug: item.slug, title: item.title, dek: item.dek || stripHtml(item.teaser_html), publicationSlug: item.publication.slug,
+    id: item.id, slug: item.slug, title: item.title, dek: item.dek || stripHtml(item.teaser_html), publicationSlug: item.publication.slug,
     publicationName: item.publication.name, categorySlug: item.category?.slug ?? "gundem", categoryName: item.category?.name ?? "Gündem",
     categoryShortName: item.category?.short_name ?? item.category?.name ?? "Gündem", newsletterName: item.newsletter?.name,
     author: item.author || item.publication.name, publishedAt, updatedAt: isoDate(item.updated_at),
@@ -38,7 +38,7 @@ function mapApiArticle(item: ApiContentItem): Article {
   };
 }
 
-function safeMockArticle(item: Article): Article { const teaser = item.body[0] ?? item.dek; return { ...item, publicationName: item.publicationName, categoryName: item.categoryName, categoryShortName: item.categoryShortName, teaserHtml: `<p>${teaser}</p>`, bodyHtml: item.premium ? null : item.body.map((paragraph) => `<p>${paragraph}</p>`).join(""), locked: item.premium, body: item.premium ? [] : item.body, sponsorships: [] }; }
+function safeMockArticle(item: Article): Article { const teaser = item.body[0] ?? item.dek; return { ...item, id: undefined, publicationName: item.publicationName, categoryName: item.categoryName, categoryShortName: item.categoryShortName, teaserHtml: `<p>${teaser}</p>`, bodyHtml: item.premium ? null : item.body.map((paragraph) => `<p>${paragraph}</p>`).join(""), locked: item.premium, body: item.premium ? [] : item.body, sponsorships: [] }; }
 function filterMock(filters: ContentFilters): Article[] { return mockArticles.filter((item) => !filters.publication || item.publicationSlug === filters.publication).filter((item) => !filters.category || item.categorySlug === filters.category || (filters.category === "saglik-iyi-yasam" && item.categorySlug === "iyi-yasam")).filter((item) => !filters.newsletter || item.relatedNewsletterSlug === filters.newsletter).filter((item) => filters.premium === undefined || item.premium === filters.premium).slice(0, Math.min(50, Math.max(1, filters.limit ?? 20))).map(safeMockArticle); }
 
 export async function getContent(filters: ContentFilters = {}): Promise<ContentSnapshot> {

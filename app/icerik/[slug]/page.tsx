@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
 import { ArticleReadingProgress } from "@/components/article-reading-progress";
+import { ArticleSaveAction } from "@/components/article-save-action";
 import { ArticleShareActions } from "@/components/article-share-actions";
 import { JsonLd } from "@/components/json-ld";
 import { PublicationMark } from "@/components/publication-mark";
@@ -101,7 +102,7 @@ export default async function ArticlePage({ params }: Props) {
       <JsonLd data={[articleSchema, breadcrumbSchema]} />
       <header className="article-header page-shell">
         <div className="breadcrumb"><Link href="/">Gündem</Link><span>/</span><Link href={`/kategori/${categorySlug}`}>{categoryLabel}</Link></div>
-        <div className="article-header__grid"><div><div className="story-kicker"><PublicationMark publication={publication} size="small" /><span>{categoryLabel}</span>{article.premium && <span className="premium-pill"><LockKeyhole size={10} /> Premium</span>}</div><h1>{article.title}</h1><p>{article.dek}</p><div className="article-byline"><span><strong>{article.author}</strong><small>Hiposta yazarı</small></span><span>Yayınlandı · {article.displayDate}</span>{modifiedLabel && <span>Güncellendi · {modifiedLabel}</span>}<span><Clock3 size={13} /> {article.readTime} okuma</span></div><ArticleShareActions url={canonical} title={article.title} description={publicDescription} mode="inline" /></div>{newsletter && <aside><p className="eyebrow">Bu içerikle birlikte</p><h2>{newsletter.name}</h2><p>{newsletter.description}</p><Link href={`/bultenler/${newsletter.slug}`}>Bülteni incele <ArrowRight size={15} /></Link></aside>}</div>
+        <div className="article-header__grid"><div><div className="story-kicker"><PublicationMark publication={publication} size="small" /><span>{categoryLabel}</span>{article.premium && <span className="premium-pill"><LockKeyhole size={10} /> Premium</span>}</div><h1>{article.title}</h1><p>{article.dek}</p><div className="article-byline"><span><strong>{article.author}</strong><small>Hiposta yazarı</small></span><span>Yayınlandı · {article.displayDate}</span>{modifiedLabel && <span>Güncellendi · {modifiedLabel}</span>}<span><Clock3 size={13} /> {article.readTime} okuma</span></div><div className="article-header-actions"><ArticleShareActions url={canonical} title={article.title} description={publicDescription} mode="inline" />{article.id ? <ArticleSaveAction contentId={article.id} returnPath={`/icerik/${article.slug}`} /> : null}</div></div>{newsletter && <aside><p className="eyebrow">Bu içerikle birlikte</p><h2>{newsletter.name}</h2><p>{newsletter.description}</p><Link href={`/bultenler/${newsletter.slug}`}>Bülteni incele <ArrowRight size={15} /></Link></aside>}</div>
       </header>
 
       <figure className="article-hero-image page-shell"><div><Image src={article.heroImage} alt={article.heroAlt} fill priority sizes="(max-width: 1280px) 100vw, 1240px" /></div>{article.photoCredit && <figcaption>{article.photoCredit}</figcaption>}</figure>
