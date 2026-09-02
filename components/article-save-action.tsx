@@ -3,6 +3,7 @@
 import { Bookmark, Check, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { shouldTrackContentView, trackAnalyticsEvent } from "@/lib/analytics";
 
 type Props = {
   contentId: number;
@@ -23,6 +24,17 @@ export function ArticleSaveAction({ contentId, returnPath }: Props) {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (shouldTrackContentView(contentId)) {
+      trackAnalyticsEvent({ eventType: "content_view", contentId, meta: { source: "article" } });
+      if (document.querySelector(".paywall")) {
+        trackAnalyticsEvent({ eventType: "premium_gate_view", contentId, meta: { source: "article", access_level: "premium" } });
+      }
+    }
+
+    const premiumCta = document.querySelector<HTMLAnchorElement>(".paywall .button--yellow");
+    const onPremiumClick = () => trackAnalyticsEvent({ eventType: "premium_cta_click", contentId, meta: { source: "article", cta_variant: "paywall_primary" } });
+    premiumCta?.addEventListener("click", onPremiumClick);
 
     async function initialize() {
       try {
@@ -46,7 +58,10 @@ export function ArticleSaveAction({ contentId, returnPath }: Props) {
     }
 
     void initialize();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      premiumCta?.removeEventListener("click", onPremiumClick);
+    };
   }, [contentId]);
 
   async function toggle() {
@@ -71,6 +86,7 @@ export function ArticleSaveAction({ contentId, returnPath }: Props) {
       if (!response.ok) throw new Error("save_failed");
       const next = !saved;
       setSaved(next);
+      trackAnalyticsEvent({ eventType: next ? "content_save" : "content_unsave", contentId, meta: { source: "article" } });
       setMessage(next ? "Kaydedildi" : "Kayıttan çıkarıldı");
       window.setTimeout(() => setMessage(""), 1800);
     } catch {

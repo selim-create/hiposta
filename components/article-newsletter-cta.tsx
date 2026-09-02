@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Check, Loader2, MailPlus } from "lucide-react";
 import { useState } from "react";
 import { SubscribeForm } from "@/components/subscribe-form";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type Props = {
   newsletterName: string;
@@ -31,6 +32,7 @@ export function ArticleNewsletterCta({ newsletterName, newsletterSlug, verified,
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload?.ok !== true) throw new Error(String(payload?.code || "update_failed"));
+      trackAnalyticsEvent({ eventType: "newsletter_signup_complete", meta: { source: "article_account_cta" } });
       setSubscribed(true);
       setMessage(`${newsletterName} bültenine aboneliğin açıldı.`);
     } catch (error) {
