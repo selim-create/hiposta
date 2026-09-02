@@ -5,13 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
+import { ArticleNewsletterCta } from "@/components/article-newsletter-cta";
 import { ArticleReadingProgress } from "@/components/article-reading-progress";
 import { ArticleSaveAction } from "@/components/article-save-action";
 import { ArticleShareActions } from "@/components/article-share-actions";
 import { JsonLd } from "@/components/json-ld";
 import { PublicationMark } from "@/components/publication-mark";
 import { SponsorshipBlock } from "@/components/sponsorship-block";
-import { SubscribeForm } from "@/components/subscribe-form";
+import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getContent, getContentArticle, getContentArticleForSession } from "@/lib/content";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
@@ -69,7 +70,7 @@ function diversifiedRelated(candidates: Article[], current: Article, limit = 3) 
 
 export default async function ArticlePage({ params }: Props) {
   const slug = (await params).slug;
-  const [article, catalog] = await Promise.all([getContentArticleForSession(slug), getCatalog()]);
+  const [article, catalog, session] = await Promise.all([getContentArticleForSession(slug), getCatalog(), getAuthSession()]);
   if (!article) notFound();
 
   const publication = catalog.publications.find((item) => item.slug === article.publicationSlug);
@@ -93,6 +94,7 @@ export default async function ArticlePage({ params }: Props) {
   const canonical = absoluteUrl(`/icerik/${article.slug}`);
   const publicDescription = article.dek || "Hiposta içeriği";
   const modifiedLabel = article.updatedAt && article.updatedAt !== article.publishedAt ? formatEditorialDate(article.updatedAt) : "";
+  const newsletterSubscribed = Boolean(newsletter && session?.subscriptions.some((item) => item.newsletter_slug === newsletter.slug && item.status === "active"));
   const articleSchema = { "@context": "https://schema.org", "@type": "Article", headline: article.title, description: publicDescription, image: article.heroImage ? [article.heroImage] : undefined, datePublished: article.publishedAt, dateModified: article.updatedAt || article.publishedAt, author: article.author ? { "@type": "Person", name: article.author } : undefined, publisher: { "@type": "Organization", name: "Hiposta", url: absoluteUrl("/"), logo: { "@type": "ImageObject", url: absoluteUrl("/hiposta-logo.svg") } }, mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, articleSection: categoryLabel, keywords: article.tags.length ? article.tags.join(", ") : undefined, isAccessibleForFree: !article.premium, inLanguage: "tr-TR" };
   const breadcrumbSchema = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Ana Sayfa", item: absoluteUrl("/") }, { "@type": "ListItem", position: 2, name: categoryLabel, item: absoluteUrl(`/kategori/${categorySlug}`) }, { "@type": "ListItem", position: 3, name: article.title, item: canonical }] };
 
@@ -116,10 +118,10 @@ export default async function ArticlePage({ params }: Props) {
           {!locked && article.tags.length > 0 && <div className="article-tags" aria-label="İçerik etiketleri">{article.tags.map((tag) => <Link key={tag} href={`/arama?q=${encodeURIComponent(tag)}`}>{tag}</Link>)}</div>}
           {endSponsorships.map((item) => <SponsorshipBlock key={item.id} sponsorship={item} />)}
         </div>
-        {newsletter && <aside className="article-newsletter-aside"><PublicationMark publication={publication} size="small" linked={false} /><p className="eyebrow">Bu yayını takip et</p><h2>{newsletter.name}</h2><p>{newsletter.schedule} · {newsletter.deliveryTime}</p><SubscribeForm newsletterName={newsletter.name} newsletterSlugs={[newsletter.slug]} compact /></aside>}
+        {newsletter && <aside className="article-newsletter-aside"><PublicationMark publication={publication} size="small" linked={false} /><p className="eyebrow">Bu yayını takip et</p><h2>{newsletter.name}</h2><p>{newsletter.schedule} · {newsletter.deliveryTime}</p><ArticleNewsletterCta newsletterName={newsletter.name} newsletterSlug={newsletter.slug} authenticated={Boolean(session)} verified={Boolean(session?.account.email_verified)} subscribed={newsletterSubscribed} compact /></aside>}
       </div>
 
-      {newsletter && <section className="article-newsletter-end page-shell" aria-label={`${newsletter.name} bültenine abone ol`}><div className="article-newsletter-end__copy"><PublicationMark publication={publication} size="small" linked={false} /><div><p className="eyebrow">Okumaya buradan devam et</p><h2>{newsletter.name} bültenine katıl</h2><p>{newsletter.description}</p></div></div><div className="article-newsletter-end__form"><span>{newsletter.schedule} · {newsletter.deliveryTime}</span><SubscribeForm newsletterName={newsletter.name} newsletterSlugs={[newsletter.slug]} compact /></div></section>}
+      {newsletter && <section className="article-newsletter-end page-shell" aria-label={`${newsletter.name} bültenine abone ol`}><div className="article-newsletter-end__copy"><PublicationMark publication={publication} size="small" linked={false} /><div><p className="eyebrow">Okumaya buradan devam et</p><h2>{newsletter.name} bültenine katıl</h2><p>{newsletter.description}</p></div></div><div className="article-newsletter-end__form"><span>{newsletter.schedule} · {newsletter.deliveryTime}</span><ArticleNewsletterCta newsletterName={newsletter.name} newsletterSlug={newsletter.slug} authenticated={Boolean(session)} verified={Boolean(session?.account.email_verified)} subscribed={newsletterSubscribed} compact /></div></section>}
 
       {(newer || older) && <nav className="article-neighbor-nav page-shell" aria-label="İçerikler arasında gezin">{newer ? <Link href={`/icerik/${newer.slug}`} className="article-neighbor article-neighbor--newer"><span><ArrowLeft size={14} /> Daha yeni</span><strong>{newer.title}</strong><small>{newer.publicationName || publication.name}</small></Link> : <span />}{older ? <Link href={`/icerik/${older.slug}`} className="article-neighbor article-neighbor--older"><span>Daha eski <ArrowRight size={14} /></span><strong>{older.title}</strong><small>{older.publicationName || publication.name}</small></Link> : <span />}</nav>}
 
