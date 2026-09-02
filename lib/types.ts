@@ -44,21 +44,17 @@ export type Newsletter = {
 
 export type Sponsorship = {
   id: number;
-  placementKey: "article_inline" | "article_end" | "newsletter_top" | "newsletter_mid" | "newsletter_footer" | string;
-  disclosureLabel: string;
+  sponsorName: string;
+  label: string;
+  placement: string;
   headline: string;
-  bodyText: string;
-  ctaText: string;
-  ctaUrl: string | null;
-  imageUrl: string | null;
-  startsAt: string | null;
-  endsAt: string | null;
-  brand: {
-    name: string;
-    slug: string;
-    logoUrl: string | null;
-    websiteUrl: string | null;
-  };
+  body: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  imageUrl?: string | null;
+  logoUrl?: string | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
 };
 
 export type Article = {
@@ -78,7 +74,7 @@ export type Article = {
   displayDate: string;
   readTime: string;
   premium: boolean;
-  featured?: boolean;
+  featured: boolean;
   heroImage: string;
   heroAlt: string;
   photoCredit: string;
@@ -137,5 +133,5 @@ export type CatalogSnapshot = {
     bundles: number;
   };
   meta: CatalogMeta;
-  source: "core" | "mock";
+  source: "core" | "mock" | "unavailable";
 };
