@@ -1,40 +1,26 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { getCatalog } from "@/lib/catalog";
 
 export async function SiteFooter() {
   const catalog = await getCatalog();
-
   return (
-    <footer className="site-footer site-footer--v2">
+    <footer className="site-footer site-footer--v2 site-footer--v3">
       <div className="page-shell site-footer__intro">
         <div><p className="footer-label">hiposta.</p><h2>Ne okuyacağını sen seç.<br />Biz doğru zamanda gönderelim.</h2></div>
         <p>{catalog.stats.publications} farklı yayın kimliği, tek bir keşif ve abonelik deneyiminde buluşuyor.</p>
       </div>
       <div className="page-shell site-footer__grid">
-        <div className="site-footer__brand">
-          <Logo inverse compact />
-          <p>İlgi alanın kadar posta.</p>
-        </div>
-        <div>
-          <p className="footer-label">Keşfet</p>
-          <nav><Link href="/yayinlar">Tüm yayınlar</Link><Link href="/bultenler">Tüm bültenler</Link><Link href="/premium">Hiposta Premium</Link><Link href="/hakkimizda">Hiposta hakkında</Link></nav>
-        </div>
-        <div>
-          <p className="footer-label">Kategoriler</p>
-          <nav>{catalog.categories.slice(0, 6).map((category) => <Link key={category.slug} href={`/kategori/${category.slug}`}>{category.shortName}</Link>)}</nav>
-        </div>
-        <div className="site-footer__cta">
-          <p className="footer-label">Başlangıç noktası</p>
-          <h2>Bültenlerini seç,<br />akışını kur.</h2>
-          <Link className="footer-arrow-link" href="/bultenler">Bültenleri keşfet <ArrowUpRight size={17} /></Link>
-        </div>
+        <div className="site-footer__brand"><Logo inverse compact /><p>İlgi alanın kadar posta.</p></div>
+        <div><p className="footer-label">Keşfet</p><nav><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/premium">Premium</Link></nav></div>
+        <div><p className="footer-label">Hiposta</p><nav><Link href="/hakkimizda">Hakkımızda</Link><Link href="/iletisim">İletişim</Link><Link href="/yardim">Yardım Merkezi</Link></nav></div>
+        <div><p className="footer-label">İş birlikleri</p><nav><Link href="/reklam-ver">Reklam Ver</Link><Link href="/reklam-ve-sponsorluk-ilkeleri">Sponsorluk ilkeleri</Link></nav></div>
+        <div><p className="footer-label">İlkeler</p><nav><Link href="/yayin-ilkeleri">Yayın ilkeleri</Link><Link href="/duzeltme-politikasi">Düzeltme politikası</Link><Link href="/yapay-zeka-ilkeleri">Yapay zekâ ilkeleri</Link></nav></div>
       </div>
       <div className="page-shell site-footer__bottom">
         <span>© 2026 Hip Medya</span>
         <span>Hiposta · içerik, bülten ve üyelik platformu</span>
-        <div><Link href="/hakkimizda#kvkk">KVKK</Link><Link href="/hakkimizda#cerezler">Çerezler</Link></div>
+        <div><Link href="/yardim">Destek</Link><Link href="/iletisim">İletişim</Link></div>
       </div>
     </footer>
   );
