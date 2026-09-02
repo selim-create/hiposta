@@ -1,6 +1,7 @@
 "use client";
 
 import { Bookmark, Check, LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -14,6 +15,7 @@ type StatePayload = {
 };
 
 export function ArticleSaveAction({ contentId, returnPath }: Props) {
+  const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,7 +51,7 @@ export function ArticleSaveAction({ contentId, returnPath }: Props) {
 
   async function toggle() {
     if (authenticated === false) {
-      window.location.href = `/giris?next=${encodeURIComponent(returnPath)}`;
+      router.push(`/giris?next=${encodeURIComponent(returnPath)}`);
       return;
     }
     if (authenticated !== true || busy) return;
@@ -63,7 +65,7 @@ export function ArticleSaveAction({ contentId, returnPath }: Props) {
       });
       if (response.status === 401) {
         setAuthenticated(false);
-        window.location.href = `/giris?next=${encodeURIComponent(returnPath)}`;
+        router.push(`/giris?next=${encodeURIComponent(returnPath)}`);
         return;
       }
       if (!response.ok) throw new Error("save_failed");
