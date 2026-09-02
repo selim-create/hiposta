@@ -2,6 +2,7 @@
 
 import type { CSSProperties, FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, LoaderCircle, Mail, Minus, Plus, RotateCcw } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicationLogo } from "@/components/publication-logo";
 import type { Category, Newsletter, NewsletterBundle, Publication } from "@/lib/types";
@@ -26,15 +27,18 @@ export function NewsletterGuestWizard({ categories, newsletters, bundles, public
   const [deliveryAvailable, setDeliveryAvailable] = useState(true);
 
   useEffect(() => {
-    localStorage.removeItem(LEGACY_KEY);
-    let saved: Saved = {};
-    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") as Saved; } catch { saved = {}; }
-    if (saved.version === 3) {
-      setInterests(Array.isArray(saved.interests) ? saved.interests.filter((slug) => categories.some((item) => item.slug === slug)) : []);
-      setSelected(Array.isArray(saved.selected) ? saved.selected.filter((slug) => availableSlugs.has(slug)) : []);
-      setStep(Number.isInteger(saved.step) ? Math.min(Math.max(Number(saved.step), 1), 4) : 1);
-    }
-    setReady(true);
+    const timeout = window.setTimeout(() => {
+      localStorage.removeItem(LEGACY_KEY);
+      let saved: Saved = {};
+      try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") as Saved; } catch { saved = {}; }
+      if (saved.version === 3) {
+        setInterests(Array.isArray(saved.interests) ? saved.interests.filter((slug) => categories.some((item) => item.slug === slug)) : []);
+        setSelected(Array.isArray(saved.selected) ? saved.selected.filter((slug) => availableSlugs.has(slug)) : []);
+        setStep(Number.isInteger(saved.step) ? Math.min(Math.max(Number(saved.step), 1), 4) : 1);
+      }
+      setReady(true);
+    }, 0);
+    return () => window.clearTimeout(timeout);
   }, [availableSlugs, categories]);
 
   useEffect(() => {
@@ -96,6 +100,6 @@ export function NewsletterGuestWizard({ categories, newsletters, bundles, public
 
     {step === 4 && <section className="wizard-panel wizard-panel--review"><header><p className="eyebrow">4 / 4 · Onay</p><h2>Seçimini gözden geçir</h2><p>Gönderim tercihini kaydetmeden önce seçtiğin bültenleri kontrol et.</p></header><div className="wizard-review-grid"><div className="wizard-review-list"><h3>{selectedItems.length} bülten seçtin</h3>{selectedItems.map((newsletter) => <div key={newsletter.slug}><span><strong>{newsletter.name}</strong><small>{publicationFor(newsletter)?.name || "Hiposta"} · {newsletter.schedule}</small></span><button type="button" onClick={() => toggleNewsletter(newsletter.slug)}>Kaldır</button></div>)}</div><form className="wizard-confirm" onSubmit={submit}><label>E-posta adresin<input name="email" type="email" inputMode="email" autoComplete="email" placeholder="sen@ornek.com" required disabled={state === "loading"} /></label><label className="wizard-consent"><input name="consent" type="checkbox" required disabled={state === "loading"} /><span>Seçtiğim bültenler için Hiposta’dan e-posta ile ileti almayı açıkça kabul ediyorum.</span></label><p className="wizard-privacy"><Mail size={14} /> Ücretsiz bülten aboneliği için hesap açman gerekmez. E-posta adresin kaynak yayınlarla paylaşılmaz.</p><button className="button button--yellow" type="submit" disabled={state === "loading" || !selected.length}>{state === "loading" ? <><LoaderCircle size={16} className="spin" /> Kaydediliyor</> : <>Seçimi tamamla <ArrowRight size={16} /></>}</button>{state === "error" && <p className="form-feedback form-feedback--error" role="alert">{feedback}</p>}</form></div></section>}
 
-    {step === 5 && <section className="wizard-complete"><span><CheckCircle2 size={34} /></span><p className="eyebrow">Seçim tamamlandı</p><h2>Gelen kutun artık sana göre.</h2><p>{feedback}</p>{!deliveryAvailable && <div className="wizard-delivery-note">Seçimlerin sistemde kayıtlı. E-posta teslim altyapısı etkinleştiğinde doğrulama/gönderim adımı devreye alınacak.</div>}<div><a className="button button--primary" href="/">İçerikleri keşfet <ArrowRight size={16} /></a><button className="button button--ghost" type="button" onClick={restart}><RotateCcw size={15} /> Seçimi yeniden düzenle</button></div></section>}
+    {step === 5 && <section className="wizard-complete"><span><CheckCircle2 size={34} /></span><p className="eyebrow">Seçim tamamlandı</p><h2>Gelen kutun artık sana göre.</h2><p>{feedback}</p>{!deliveryAvailable && <div className="wizard-delivery-note">Seçimlerin sistemde kayıtlı. E-posta teslim altyapısı etkinleştiğinde doğrulama/gönderim adımı devreye alınacak.</div>}<div><Link className="button button--primary" href="/">İçerikleri keşfet <ArrowRight size={16} /></Link><button className="button button--ghost" type="button" onClick={restart}><RotateCcw size={15} /> Seçimi yeniden düzenle</button></div></section>}
   </div>;
 }
