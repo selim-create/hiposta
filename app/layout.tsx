@@ -12,6 +12,7 @@ import "./auth-recovery-v1.css";
 import "./premium-article-fix.css";
 import "./content-experience-v2.css";
 import "./newsletter-wizard-v2.css";
+import "./newsletter-account-manager.css";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
