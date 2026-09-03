@@ -2,6 +2,19 @@ export type PublicCoreFetchInit = RequestInit & { next?: { revalidate: number } 
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+const SUCCESS_CACHE_MS = isDevelopment ? 5_000 : 30_000;
+const FAILURE_CACHE_MS = 5_000;
+
+type ResponseSnapshot = {
+  body: string;
+  status: number;
+  statusText: string;
+  headers: Array<[string, string]>;
+  expiresAt: number;
+};
+
+const inFlight = new Map<string, Promise<ResponseSnapshot>>();
+const responseCache = new Map<string, ResponseSnapshot>();
 
 export function publicCoreUrl(url: string): string {
   return url;
@@ -29,7 +42,20 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function fetchPublicCore(url: string, init: PublicCoreFetchInit = publicCoreFetchInit(), attempts = 3): Promise<Response> {
+function cacheKey(url: string, init: PublicCoreFetchInit): string | null {
+  const method = String(init.method ?? "GET").toUpperCase();
+  return method === "GET" ? `${method}:${url}` : null;
+}
+
+function responseFromSnapshot(snapshot: ResponseSnapshot): Response {
+  return new Response(snapshot.body, {
+    status: snapshot.status,
+    statusText: snapshot.statusText,
+    headers: snapshot.headers,
+  });
+}
+
+async function requestWithRetry(url: string, init: PublicCoreFetchInit, attempts: number): Promise<Response> {
   let lastResponse: Response | null = null;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const response = await fetch(publicCoreUrl(url), init);
@@ -38,6 +64,43 @@ export async function fetchPublicCore(url: string, init: PublicCoreFetchInit = p
     await sleep(retryDelay(response, attempt));
   }
   return lastResponse as Response;
+}
+
+async function snapshotResponse(response: Response): Promise<ResponseSnapshot> {
+  const ttl = response.ok ? SUCCESS_CACHE_MS : FAILURE_CACHE_MS;
+  return {
+    body: await response.text(),
+    status: response.status,
+    statusText: response.statusText,
+    headers: Array.from(response.headers.entries()),
+    expiresAt: Date.now() + ttl,
+  };
+}
+
+export async function fetchPublicCore(url: string, init: PublicCoreFetchInit = publicCoreFetchInit(), attempts = 3): Promise<Response> {
+  const key = cacheKey(url, init);
+  if (!key) return requestWithRetry(url, init, attempts);
+
+  const now = Date.now();
+  const cached = responseCache.get(key);
+  if (cached && cached.expiresAt > now) return responseFromSnapshot(cached);
+  if (cached) responseCache.delete(key);
+
+  let pending = inFlight.get(key);
+  if (!pending) {
+    pending = requestWithRetry(url, init, attempts).then(async (response) => {
+      const snapshot = await snapshotResponse(response);
+      responseCache.set(key, snapshot);
+      return snapshot;
+    });
+    inFlight.set(key, pending);
+    void pending.then(
+      () => { inFlight.delete(key); },
+      () => { inFlight.delete(key); },
+    );
+  }
+
+  return responseFromSnapshot(await pending);
 }
 
 export function allowDevelopmentMockFallback(): boolean {
