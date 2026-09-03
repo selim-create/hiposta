@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, Loader2, MailPlus } from "lucide-react";
+import { ArrowRight, Check, Loader2, MailPlus } from "lucide-react";
 import { useState } from "react";
 import { SubscribeForm } from "@/components/subscribe-form";
 import { trackAnalyticsEvent } from "@/lib/analytics";
@@ -14,9 +14,10 @@ type Props = {
   subscribed: boolean;
   compact?: boolean;
   source?: string;
+  anonymousMode?: "form" | "link";
 };
 
-export function NewsletterSubscribeAction({ newsletterName, newsletterSlug, verified, authenticated, subscribed: initialSubscribed, compact = false, source = "newsletter_cta" }: Props) {
+export function NewsletterSubscribeAction({ newsletterName, newsletterSlug, verified, authenticated, subscribed: initialSubscribed, compact = false, source = "newsletter_cta", anonymousMode = "form" }: Props) {
   const [subscribed, setSubscribed] = useState(initialSubscribed);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
@@ -46,6 +47,9 @@ export function NewsletterSubscribeAction({ newsletterName, newsletterSlug, veri
   }
 
   if (!authenticated) {
+    if (anonymousMode === "link") {
+      return <Link className="newsletter-card-subscribe-link" href={`/bultenler/${newsletterSlug}`}>Abone ol <ArrowRight size={14} /></Link>;
+    }
     return <SubscribeForm newsletterName={newsletterName} newsletterSlugs={[newsletterSlug]} compact={compact} />;
   }
 
