@@ -17,9 +17,10 @@ export async function SiteFooter() {
         <div><p className="footer-label">Hiposta</p><nav><Link href="/hakkimizda">Hakkımızda</Link><Link href="/iletisim">İletişim</Link><Link href="/yardim">Yardım Merkezi</Link></nav></div>
         <div><p className="footer-label">İş birlikleri</p><nav><Link href="/reklam-ver">Reklam Ver</Link><Link href="/reklam-ve-sponsorluk-ilkeleri">Sponsorluk ilkeleri</Link></nav></div>
         <div><p className="footer-label">İlkeler</p><nav><Link href="/yayin-ilkeleri">Yayın ilkeleri</Link><Link href="/duzeltme-politikasi">Düzeltme politikası</Link><Link href="/yapay-zeka-ilkeleri">Yapay zekâ ilkeleri</Link></nav></div>
+        <div><p className="footer-label">Yasal</p><nav><Link href="/gizlilik-politikasi">Gizlilik</Link><Link href="/kvkk-aydinlatma-metni">KVKK</Link><Link href="/cerez-politikasi">Çerezler</Link><Link href="/kullanim-kosullari">Kullanım koşulları</Link><Link href="/uyelik-ve-abonelik-kosullari">Üyelik & abonelik</Link></nav></div>
       </div>
       <div className="page-shell site-footer__bottom">
-        <span>© 2026 Hip Medya</span>
+        <span>© 2026 Hip Medya Limited Şirketi</span>
         <span>Hiposta · içerik, bülten ve üyelik platformu</span>
         <div><PrivacyPreferencesLink /><Link href="/yardim">Destek</Link><Link href="/iletisim">İletişim</Link></div>
       </div>
