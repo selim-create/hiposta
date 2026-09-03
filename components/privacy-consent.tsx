@@ -11,13 +11,23 @@ export function PrivacyConsentCenter() {
   const [analytics, setAnalytics] = useState(false);
 
   useEffect(() => {
-    const consent = readPrivacyConsent();
-    setAnalytics(consent?.analytics ?? false);
-    setOpen(!consent);
-    setReady(true);
-    const showPreferences = () => { const current = readPrivacyConsent(); setAnalytics(current?.analytics ?? false); setPreferences(true); setOpen(true); };
+    const initialize = window.setTimeout(() => {
+      const consent = readPrivacyConsent();
+      setAnalytics(consent?.analytics ?? false);
+      setOpen(!consent);
+      setReady(true);
+    }, 0);
+    const showPreferences = () => {
+      const current = readPrivacyConsent();
+      setAnalytics(current?.analytics ?? false);
+      setPreferences(true);
+      setOpen(true);
+    };
     window.addEventListener(CONSENT_OPEN_EVENT, showPreferences);
-    return () => window.removeEventListener(CONSENT_OPEN_EVENT, showPreferences);
+    return () => {
+      window.clearTimeout(initialize);
+      window.removeEventListener(CONSENT_OPEN_EVENT, showPreferences);
+    };
   }, []);
 
   if (!ready || !open) return null;
