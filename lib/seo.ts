@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 export const SITE_NAME = "Hiposta";
 export const SITE_DESCRIPTION = "Hip Medya’nın yayınlarından içerikleri, premium dosyaları ve seçtiğin e-posta bültenlerini tek merkezde keşfet.";
+export const DEFAULT_SOCIAL_IMAGE_PATH = "/opengraph-image";
 
 export function getSiteUrl(): URL {
   const value = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://hiposta.com";
@@ -10,6 +11,13 @@ export function getSiteUrl(): URL {
 
 export function absoluteUrl(path = "/"): string {
   return new URL(path.replace(/^\//, ""), getSiteUrl()).toString();
+}
+
+function socialImage(image?: string | null): string {
+  if (!image) return absoluteUrl(DEFAULT_SOCIAL_IMAGE_PATH);
+  const normalized = image.toLowerCase().split("?")[0];
+  if (normalized.endsWith(".svg") || normalized.endsWith("/content-placeholder.svg")) return absoluteUrl(DEFAULT_SOCIAL_IMAGE_PATH);
+  return image.startsWith("http://") || image.startsWith("https://") ? image : absoluteUrl(image);
 }
 
 export function publicMetadata({
@@ -32,7 +40,8 @@ export function publicMetadata({
   authors?: string[];
 }): Metadata {
   const canonical = absoluteUrl(path);
-  const images = image ? [{ url: image }] : [{ url: absoluteUrl("/hiposta-logo.svg"), alt: "Hiposta" }];
+  const resolvedImage = socialImage(image);
+  const images = [{ url: resolvedImage, alt: title }];
   return {
     title,
     description,
@@ -47,7 +56,7 @@ export function publicMetadata({
       images,
       ...(type === "article" ? { publishedTime, modifiedTime, authors } : {}),
     },
-    twitter: { card: "summary_large_image", title, description, images: images.map((item) => item.url) },
+    twitter: { card: "summary_large_image", title, description, images: [resolvedImage] },
   };
 }
 

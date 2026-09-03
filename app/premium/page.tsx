@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import { ArrowRight, Crown, Layers3, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
+import { publicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = publicMetadata({
   title: "Premium",
   description: "Hiposta Premium ile hazırlanacak derin analizleri, özel seçkileri ve tek hesap deneyimini keşfet.",
-};
+  path: "/premium",
+});
 
 export default async function PremiumPage() {
   const [catalog, content] = await Promise.all([getCatalog(), getContent({ premium: true, limit: 12 })]);
