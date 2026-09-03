@@ -100,9 +100,9 @@ export function shouldTrackContentView(contentId: number): boolean {
   const key = `${VIEW_PREFIX}${contentId}`;
   const now = Date.now();
   try {
-    const last = Number(window.localStorage.getItem(key) || "0");
+    const last = Number(window.sessionStorage.getItem(key) || "0");
     if (last && now - last < THIRTY_MINUTES) return false;
-    window.localStorage.setItem(key, String(now));
+    window.sessionStorage.setItem(key, String(now));
     return true;
   } catch {
     return true;
