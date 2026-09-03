@@ -4,20 +4,20 @@ import { ArrowLeft, ArrowRight, Check, Clock3, Crown, LockKeyhole } from "lucide
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArticleCard } from "@/components/article-card";
 import { ArticleNewsletterCta } from "@/components/article-newsletter-cta";
 import { ArticleReadingProgress } from "@/components/article-reading-progress";
 import { ArticleSaveAction } from "@/components/article-save-action";
 import { ArticleShareActions } from "@/components/article-share-actions";
+import { EditorialNetworkBlock } from "@/components/editorial-network-block";
 import { JsonLd } from "@/components/json-ld";
 import { PublicationMark } from "@/components/publication-mark";
 import { SponsorshipBlock } from "@/components/sponsorship-block";
 import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getContent, getContentArticle, getContentArticleForSession } from "@/lib/content";
+import { buildEditorialNetwork } from "@/lib/editorial-network";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
 import { sponsorshipsFor } from "@/lib/sponsorship";
-import type { Article } from "@/lib/types";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -35,34 +35,6 @@ function formatEditorialDate(value?: string) {
   return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" }).format(date);
 }
 
-function relatedScore(candidate: Article, current: Article) {
-  let score = 0;
-  if (candidate.categorySlug === current.categorySlug) score += 8;
-  if (candidate.publicationSlug === current.publicationSlug) score += 2;
-  const currentTags = new Set(current.tags.map((tag) => tag.toLocaleLowerCase("tr-TR")));
-  for (const tag of candidate.tags) if (currentTags.has(tag.toLocaleLowerCase("tr-TR"))) score += 3;
-  if (candidate.premium === current.premium) score += 1;
-  return score;
-}
-
-function diversifiedRelated(candidates: Article[], current: Article, limit = 3) {
-  const ranked = candidates.filter((item) => item.slug !== current.slug).map((item) => ({ item, score: relatedScore(item, current) })).sort((a, b) => b.score - a.score || new Date(b.item.publishedAt).getTime() - new Date(a.item.publishedAt).getTime());
-  const selected: Article[] = [];
-  const usedPublications = new Set<string>();
-  for (const { item } of ranked) {
-    if (selected.length >= limit) break;
-    if (usedPublications.has(item.publicationSlug)) continue;
-    selected.push(item);
-    usedPublications.add(item.publicationSlug);
-  }
-  if (selected.length < limit) for (const { item } of ranked) {
-    if (selected.length >= limit) break;
-    if (selected.some((selectedItem) => selectedItem.slug === item.slug)) continue;
-    selected.push(item);
-  }
-  return selected;
-}
-
 export default async function ArticlePage({ params }: Props) {
   const slug = (await params).slug;
   const [article, catalog, session] = await Promise.all([getContentArticleForSession(slug), getCatalog(), getAuthSession()]);
@@ -78,7 +50,7 @@ export default async function ArticlePage({ params }: Props) {
   const currentIndex = orderedPool.findIndex((item) => item.slug === article.slug);
   const newer = currentIndex > 0 ? orderedPool[currentIndex - 1] : null;
   const older = currentIndex >= 0 && currentIndex < orderedPool.length - 1 ? orderedPool[currentIndex + 1] : null;
-  const related = diversifiedRelated(discoveryPool, article, 3);
+  const editorialNetwork = buildEditorialNetwork({ current: article, articles: discoveryPool, publications: catalog.publications, newsletters: catalog.newsletters });
   const inlineSponsorships = sponsorshipsFor(article.sponsorships, "article_inline");
   const endSponsorships = sponsorshipsFor(article.sponsorships, "article_end");
 
@@ -120,7 +92,7 @@ export default async function ArticlePage({ params }: Props) {
 
       {(newer || older) && <nav className="article-neighbor-nav page-shell" aria-label="İçerikler arasında gezin">{newer ? <Link href={`/icerik/${newer.slug}`} className="article-neighbor article-neighbor--newer"><span><ArrowLeft size={14} /> Daha yeni</span><strong>{newer.title}</strong><small>{newer.publicationName || publication.name}</small></Link> : <span />}{older ? <Link href={`/icerik/${older.slug}`} className="article-neighbor article-neighbor--older"><span>Daha eski <ArrowRight size={14} /></span><strong>{older.title}</strong><small>{older.publicationName || publication.name}</small></Link> : <span />}</nav>}
 
-      {related.length > 0 && <section className="related-section page-shell"><div className="section-heading section-heading--rule"><div><p className="eyebrow">Hiposta ağından</p><h2>Benzer içerikler</h2></div></div><div className="article-grid article-grid--three">{related.map((item) => <ArticleCard key={item.slug} article={item} />)}</div></section>}
+      <EditorialNetworkBlock network={editorialNetwork} publications={catalog.publications} />
     </article>
   );
 }
