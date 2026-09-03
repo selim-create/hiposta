@@ -16,6 +16,10 @@ type Props = {
   publications: Publication[];
 };
 
+type SessionPayload = {
+  subscriptions?: Array<{ newsletter_slug?: string; status?: string }>;
+};
+
 function unique(values: string[]) {
   return Array.from(new Set(values));
 }
@@ -41,6 +45,22 @@ export function NewsletterAccountManager({ email, verified, activeSlugs, newslet
 
   function publicationFor(newsletter: Newsletter) {
     return publications.find((item) => item.slug === newsletter.publicationSlug);
+  }
+
+  async function resyncFromServer() {
+    try {
+      const response = await fetch("/api/auth/session", { cache: "no-store" });
+      if (!response.ok) return null;
+      const payload = await response.json() as SessionPayload;
+      const slugs = (payload.subscriptions ?? [])
+        .filter((item) => item.status === "active" && item.newsletter_slug && availableSlugs.has(item.newsletter_slug))
+        .map((item) => String(item.newsletter_slug));
+      setSelected(slugs);
+      setSaved(slugs);
+      return slugs;
+    } catch {
+      return null;
+    }
   }
 
   function toggleNewsletter(slug: string) {
@@ -88,18 +108,22 @@ export function NewsletterAccountManager({ email, verified, activeSlugs, newslet
         }
       }
 
-      setSaved(selected);
+      const synced = await resyncFromServer();
+      if (!synced) setSaved(selected);
       setState("success");
       setFeedback("Bülten tercihlerin güncellendi.");
     } catch (error) {
       const code = error instanceof Error ? error.message : "update_failed";
+      const synced = await resyncFromServer();
       setState("error");
       setFeedback(
         code === "verification_required"
           ? "Tercihleri değiştirmek için e-posta doğrulaması gerekli."
           : code === "suppressed"
             ? "Bu e-posta adresi gönderim engelinde olduğu için yeniden abonelik açılamıyor."
-            : "Tercihler tamamen güncellenemedi. Hesabım ekranındaki mevcut durumu kontrol edip tekrar deneyebilirsin.",
+            : synced
+              ? "Bazı değişiklikler tamamlanamadı. Güncel abonelik durumun sunucudan yeniden yüklendi; tekrar deneyebilirsin."
+              : "Tercihler tamamen güncellenemedi. Sayfayı yenileyip mevcut durumu kontrol ederek tekrar deneyebilirsin.",
       );
     }
   }
