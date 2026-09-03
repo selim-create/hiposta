@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { PrivacyPreferencesLink } from "@/components/privacy-preferences-link";
 import { getCatalog } from "@/lib/catalog";
 
 export async function SiteFooter() {
@@ -20,7 +21,7 @@ export async function SiteFooter() {
       <div className="page-shell site-footer__bottom">
         <span>© 2026 Hip Medya</span>
         <span>Hiposta · içerik, bülten ve üyelik platformu</span>
-        <div><Link href="/yardim">Destek</Link><Link href="/iletisim">İletişim</Link></div>
+        <div><PrivacyPreferencesLink /><Link href="/yardim">Destek</Link><Link href="/iletisim">İletişim</Link></div>
       </div>
     </footer>
   );
