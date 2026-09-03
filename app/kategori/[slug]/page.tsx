@@ -7,6 +7,7 @@ import { ArticleCard } from "@/components/article-card";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
+import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
@@ -27,13 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const slug = (await params).slug;
-  const [catalog, content] = await Promise.all([getCatalog(), getContent({ category: slug, limit: 24 })]);
+  const [catalog, content, session] = await Promise.all([getCatalog(), getContent({ category: slug, limit: 24 }), getAuthSession()]);
   const category = catalog.categories.find((item) => item.slug === slug);
   if (!category) notFound();
 
   const categoryArticles = content.articles;
   const categoryPublications = catalog.publications.filter((publication) => publication.categorySlug === slug);
   const categoryNewsletters = catalog.newsletters.filter((newsletter) => newsletter.categorySlug === slug);
+  const activeSubscriptions = new Set(session?.subscriptions.filter((item) => item.status === "active").map((item) => item.newsletter_slug) ?? []);
   const indexable = categoryPublications.some((item) => item.status === "active" && !item.isComingSoon) || categoryNewsletters.length > 0 || categoryArticles.length > 0;
   const collectionSchema = indexable ? {
     "@context": "https://schema.org", "@type": "CollectionPage", name: category.name, description: category.description,
@@ -63,7 +65,7 @@ export default async function CategoryPage({ params }: Props) {
         </div>
         <div>
           <p className="eyebrow">Doğrudan gelen kutuna</p><h2>Bültenler</h2>
-          {categoryNewsletters.map((newsletter) => <NewsletterCard key={newsletter.slug} newsletter={newsletter} publication={catalog.publications.find((item) => item.slug === newsletter.publicationSlug)} />)}
+          {categoryNewsletters.map((newsletter) => <NewsletterCard key={newsletter.slug} newsletter={newsletter} publication={catalog.publications.find((item) => item.slug === newsletter.publicationSlug)} showSubscriptionAction authenticated={Boolean(session)} verified={Boolean(session?.account.email_verified)} subscribed={activeSubscriptions.has(newsletter.slug)} source="category_newsletter_card" />)}
           {!categoryNewsletters.length && <p>Bu kategorinin yeni bültenleri yakında.</p>}
           <Link className="inline-arrow-link" href="/bultenler">Tüm bültenleri gör <ArrowUpRight size={15} /></Link>
         </div>

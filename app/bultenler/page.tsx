@@ -35,7 +35,7 @@ export default async function NewslettersPage() {
         ) : (
           <>
             <div><p className="eyebrow">{catalogAvailable ? `${catalog.stats.activeNewsletters} bülten · ${catalog.stats.categories} kategori` : "Hiposta bülten ağı"}</p><h1>Gelen kutun,<br /><span>senin yayın akışın.</span></h1></div>
-            <div><p>İlgi alanlarını seç, sana uygun bültenleri keşfet ve tek bir akışta aboneliklerini tamamla. Hesap açmadan da ücretsiz bültenlere abone olabilirsin.</p><dl><div><dt>01</dt><dd>İlgi alanını seç</dd></div><div><dt>02</dt><dd>Önerileri düzenle</dd></div><div><dt>03</dt><dd>Seçimini onayla</dd></div></dl></div>
+            <div><p>Önce ilgi alanını, sonra takip etmek istediğin yayınları seç. Yalnızca sana uygun bültenleri gör, istersen hazır paketlerle seçimini genişlet ve tek adımda tamamla.</p><dl><div><dt>01</dt><dd>İlgi alanını seç</dd></div><div><dt>02</dt><dd>Yayınlarını belirle</dd></div><div><dt>03</dt><dd>Bültenlerini oluştur</dd></div></dl></div>
           </>
         )}
       </section>

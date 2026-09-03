@@ -1,0 +1,60 @@
+/* Hiposta Newsletter Discovery & Subscription V2 */
+
+.wizard-progress {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.newsletter-card.is-subscribed {
+  background: color-mix(in srgb, var(--newsletter-accent) 5%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--newsletter-accent) 35%, var(--line));
+}
+
+.newsletter-card .article-account-subscribe,
+.newsletter-card .newsletter-card-subscribe-link {
+  margin-top: 16px;
+}
+
+.newsletter-card .article-account-subscribe--success,
+.newsletter-card .article-account-subscribe--verify {
+  padding: 11px 12px;
+}
+
+.newsletter-card-subscribe-link {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.newsletter-card-subscribe-link:hover {
+  background: var(--ink);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 980px) {
+  .wizard-progress {
+    grid-template-columns: repeat(6, minmax(48px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .wizard-progress {
+    overflow-x: auto;
+    grid-template-columns: repeat(6, minmax(54px, 1fr));
+    scrollbar-width: none;
+  }
+
+  .wizard-progress::-webkit-scrollbar {
+    display: none;
+  }
+}
