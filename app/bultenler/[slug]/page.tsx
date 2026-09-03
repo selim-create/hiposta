@@ -6,8 +6,9 @@ import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
+import { NewsletterSubscribeAction } from "@/components/newsletter-subscribe-action";
 import { PublicationMark } from "@/components/publication-mark";
-import { SubscribeForm } from "@/components/subscribe-form";
+import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { getNewsletterIssues } from "@/lib/issues";
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NewsletterPage({ params }: Props) {
   const slug = (await params).slug;
-  const [catalog, content, issues] = await Promise.all([getCatalog(), getContent({ newsletter: slug, limit: 12 }), getNewsletterIssues(slug)]);
+  const [catalog, content, issues, session] = await Promise.all([getCatalog(), getContent({ newsletter: slug, limit: 12 }), getNewsletterIssues(slug), getAuthSession()]);
   const newsletter = catalog.newsletters.find((item) => item.slug === slug);
   if (!newsletter) notFound();
   const publication = catalog.publications.find((item) => item.slug === newsletter.publicationSlug);
@@ -39,6 +40,7 @@ export default async function NewsletterPage({ params }: Props) {
   const crossSell = catalog.newsletters.filter((item) => item.slug !== newsletter.slug && item.categorySlug !== newsletter.categorySlug).slice(0, 3);
   const style = { "--newsletter-hero": newsletter.accent, "--newsletter-ink": publication.foreground } as CSSProperties;
   const indexable = publication.status === "active" && !publication.isComingSoon;
+  const subscribed = Boolean(session?.subscriptions.some((item) => item.newsletter_slug === newsletter.slug && item.status === "active"));
   const collectionSchema = indexable ? {
     "@context": "https://schema.org", "@type": "CollectionPage", name: newsletter.name, description: newsletter.longDescription,
     url: absoluteUrl(`/bultenler/${newsletter.slug}`), inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
@@ -64,7 +66,7 @@ export default async function NewsletterPage({ params }: Props) {
                 <div><FileText size={17} /><span><small>Format</small>{newsletter.format}</span></div>
                 <div><UsersRound size={17} /><span><small>Topluluk</small>{newsletter.audience}</span></div>
               </div>
-              <SubscribeForm newsletterName={newsletter.name} newsletterSlugs={[newsletter.slug]} />
+              <NewsletterSubscribeAction newsletterName={newsletter.name} newsletterSlug={newsletter.slug} authenticated={Boolean(session)} verified={Boolean(session?.account.email_verified)} subscribed={subscribed} source="newsletter_detail" />
             </aside>
           </div>
         </div>
