@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { ArrowRight, ArrowUpRight, Clock3, LockKeyhole, Sparkles } from "lucide-react";
 import Image from "next/image";
@@ -11,11 +12,19 @@ import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { publicMetadata, SITE_DESCRIPTION } from "@/lib/seo";
 
-export const metadata = publicMetadata({
-  title: "İlgi alanın kadar posta",
+const HOME_TITLE = "Hiposta — İçerik, Bülten ve Premium Yayın Platformu";
+const homeMetadata = publicMetadata({
+  title: HOME_TITLE,
   description: SITE_DESCRIPTION,
   path: "/",
 });
+
+export const metadata: Metadata = {
+  ...homeMetadata,
+  title: { absolute: HOME_TITLE },
+  openGraph: { ...homeMetadata.openGraph, title: HOME_TITLE },
+  twitter: { ...homeMetadata.twitter, title: HOME_TITLE },
+};
 
 export default async function HomePage() {
   const [catalog, content] = await Promise.all([getCatalog(), getContent({ limit: 20 })]);

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const SITE_NAME = "Hiposta";
-export const SITE_DESCRIPTION = "Hip Medya’nın yayınlarından içerikleri, premium dosyaları ve seçtiğin e-posta bültenlerini tek merkezde keşfet.";
+export const SITE_DESCRIPTION = "Hiposta’da Hip Medya yayın ağındaki içerikleri, e-posta bültenlerini ve premium dosyaları tek merkezde keşfet, takip et ve kendi yayın akışını oluştur.";
 export const DEFAULT_SOCIAL_IMAGE_PATH = "/opengraph-image";
 
 export function getSiteUrl(): URL {

@@ -22,6 +22,7 @@ import "./personalised-discovery-v1.css";
 import "./editorial-network-v1.css";
 import "./trust-corporate-v1.css";
 import "./privacy-consent-v1.css";
+import "./footer-polish-v1.css";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -35,13 +36,13 @@ export const metadata: Metadata = {
     siteName: "Hiposta",
     url: absoluteUrl("/"),
     title: "Hiposta — İlgi alanın kadar posta",
-    description: "Farklı yayınlar, tek keşif ve abonelik deneyimi.",
+    description: SITE_DESCRIPTION,
     images: [{ url: absoluteUrl(DEFAULT_SOCIAL_IMAGE_PATH), alt: "Hiposta — İlgi alanın kadar posta" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Hiposta — İlgi alanın kadar posta",
-    description: "Farklı yayınlar, tek keşif ve abonelik deneyimi.",
+    description: SITE_DESCRIPTION,
     images: [absoluteUrl(DEFAULT_SOCIAL_IMAGE_PATH)],
   },
   icons: { icon: "/favicon.svg" },
