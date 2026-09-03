@@ -1,4 +1,5 @@
-import type { CSSProperties, Metadata } from "react";
+import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { ArrowRight, ArrowUpRight, Clock3, LockKeyhole, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
