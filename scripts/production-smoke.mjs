@@ -22,6 +22,27 @@ function pass(message) {
   console.log(`✓ ${message}`);
 }
 
+function normalizeUrl(value) {
+  try {
+    const url = new URL(value, `${baseUrl}/`);
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return value;
+  }
+}
+
+function extractCanonical(html) {
+  const tags = html.match(/<link\b[^>]*>/gi) || [];
+  for (const tag of tags) {
+    const relMatch = tag.match(/\brel\s*=\s*["']([^"']+)["']/i);
+    if (!relMatch || !relMatch[1].split(/\s+/).some((value) => value.toLowerCase() === "canonical")) continue;
+    const hrefMatch = tag.match(/\bhref\s*=\s*["']([^"']+)["']/i);
+    if (hrefMatch) return hrefMatch[1];
+  }
+  return null;
+}
+
 for (const check of checks) {
   const url = `${baseUrl}${check.path}`;
   try {
@@ -42,10 +63,14 @@ for (const check of checks) {
 
     if (check.canonical) {
       const html = await response.text();
-      const escaped = check.canonical.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const canonicalPattern = new RegExp(`<link[^>]+rel=["']canonical["'][^>]+href=["']${escaped}["']|<link[^>]+href=["']${escaped}["'][^>]+rel=["']canonical["']`, "i");
-      if (!canonicalPattern.test(html)) fail(`${check.path} canonical eksik veya yanlış (${check.canonical})`);
-      else pass(`${check.path} canonical doğru`);
+      const foundCanonical = extractCanonical(html);
+      const expectedCanonical = normalizeUrl(check.canonical);
+      const normalizedFound = foundCanonical ? normalizeUrl(foundCanonical) : null;
+      if (!normalizedFound || normalizedFound !== expectedCanonical) {
+        fail(`${check.path} canonical eksik veya yanlış (beklenen: ${expectedCanonical}, bulunan: ${normalizedFound || "yok"})`);
+      } else {
+        pass(`${check.path} canonical doğru (${normalizedFound})`);
+      }
     }
   } catch (error) {
     fail(`${check.path} istek hatası: ${error instanceof Error ? error.message : String(error)}`);
@@ -55,7 +80,7 @@ for (const check of checks) {
 try {
   const response = await fetch(`https://www.hiposta.com/`, { redirect: "manual" });
   const location = response.headers.get("location");
-  if (![301, 308].includes(response.status) || location !== `${baseUrl}/`) {
+  if (![301, 308].includes(response.status) || normalizeUrl(location || "") !== normalizeUrl(`${baseUrl}/`)) {
     fail(`www yönlendirmesi beklenenden farklı: HTTP ${response.status} → ${location || "(location yok)"}`);
   } else {
     pass(`www → ${baseUrl}/ (${response.status})`);
