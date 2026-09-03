@@ -2,17 +2,23 @@ import { Crown, Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { AccountLink } from "@/components/account-link";
 import { Logo } from "@/components/logo";
+import { MobileAccountLink } from "@/components/mobile-account-link";
 import { getCatalog } from "@/lib/catalog";
 
 export async function SiteHeader() {
   const catalog = await getCatalog();
+  const catalogAvailable = catalog.source !== "unavailable";
 
   return (
     <>
       <div className="utility-bar utility-bar--v2">
         <div className="page-shell utility-bar__inner">
           <span>Hip Medya yayın ağı</span>
-          <span className="utility-bar__promise">{catalog.stats.publications} yayın · {catalog.stats.activeNewsletters} aktif bülten</span>
+          <span className="utility-bar__promise">
+            {catalogAvailable
+              ? `${catalog.stats.publications} yayın · ${catalog.stats.activeNewsletters} aktif bülten`
+              : "Yayın ağına şu anda ulaşılamıyor"}
+          </span>
           <Link href="/bultenler">Gelen kutunu kur</Link>
         </div>
       </div>
@@ -36,7 +42,7 @@ export async function SiteHeader() {
           <details className="mobile-menu">
             <summary aria-label="Menüyü aç"><Menu size={21} /></summary>
             <nav aria-label="Mobil navigasyon">
-              <Link href="/">Ana sayfa</Link><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/arama">Ara</Link><Link href="/hesabim">Hesabım</Link><Link href="/giris">Giriş yap</Link><Link href="/premium">Premium</Link>
+              <Link href="/">Ana sayfa</Link><Link href="/yayinlar">Yayınlar</Link><Link href="/bultenler">Bültenler</Link><Link href="/arama">Ara</Link><MobileAccountLink /><Link href="/premium">Premium</Link>
             </nav>
           </details>
         </div>

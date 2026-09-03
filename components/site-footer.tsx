@@ -5,11 +5,15 @@ import { getCatalog } from "@/lib/catalog";
 
 export async function SiteFooter() {
   const catalog = await getCatalog();
+  const networkCopy = catalog.source === "unavailable"
+    ? "Hip Medya yayın ağı, tek bir keşif ve abonelik deneyiminde buluşuyor."
+    : `${catalog.stats.publications} farklı yayın kimliği, tek bir keşif ve abonelik deneyiminde buluşuyor.`;
+
   return (
     <footer className="site-footer site-footer--v2 site-footer--v3">
       <div className="page-shell site-footer__intro">
         <div><p className="footer-label">hiposta.</p><h2>Ne okuyacağını sen seç.<br />Biz doğru zamanda gönderelim.</h2></div>
-        <p>{catalog.stats.publications} farklı yayın kimliği, tek bir keşif ve abonelik deneyiminde buluşuyor.</p>
+        <p>{networkCopy}</p>
       </div>
       <div className="page-shell site-footer__grid">
         <div className="site-footer__brand"><Logo inverse compact /><p>İlgi alanın kadar posta.</p></div>

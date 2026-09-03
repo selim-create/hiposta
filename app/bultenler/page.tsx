@@ -13,6 +13,7 @@ export const metadata = publicMetadata({
 
 export default async function NewslettersPage() {
   const [catalog, session] = await Promise.all([getCatalog(), getAuthSession()]);
+  const catalogAvailable = catalog.source !== "unavailable";
   const activeSlugs = session
     ? session.subscriptions.filter((item) => item.status === "active").map((item) => item.newsletter_slug)
     : [];
@@ -23,7 +24,7 @@ export default async function NewslettersPage() {
         {session ? (
           <>
             <div>
-              <p className="eyebrow">{catalog.stats.activeNewsletters} aktif bülten · hesabına bağlı</p>
+              <p className="eyebrow">{catalogAvailable ? `${catalog.stats.activeNewsletters} aktif bülten · hesabına bağlı` : "Bülten ağına şu anda ulaşılamıyor"}</p>
               <h1>Bültenlerini,<br /><span>tek yerden yönet.</span></h1>
             </div>
             <div>
@@ -33,14 +34,16 @@ export default async function NewslettersPage() {
           </>
         ) : (
           <>
-            <div><p className="eyebrow">{catalog.stats.activeNewsletters} bülten · {catalog.stats.categories} kategori</p><h1>Gelen kutun,<br /><span>senin yayın akışın.</span></h1></div>
+            <div><p className="eyebrow">{catalogAvailable ? `${catalog.stats.activeNewsletters} bülten · ${catalog.stats.categories} kategori` : "Hiposta bülten ağı"}</p><h1>Gelen kutun,<br /><span>senin yayın akışın.</span></h1></div>
             <div><p>İlgi alanlarını seç, sana uygun bültenleri keşfet ve tek bir akışta aboneliklerini tamamla. Hesap açmadan da ücretsiz bültenlere abone olabilirsin.</p><dl><div><dt>01</dt><dd>İlgi alanını seç</dd></div><div><dt>02</dt><dd>Önerileri düzenle</dd></div><div><dt>03</dt><dd>Seçimini onayla</dd></div></dl></div>
           </>
         )}
       </section>
 
       <section className="newsletter-directory newsletter-directory--wizard page-shell">
-        {session ? (
+        {!catalogAvailable ? (
+          <div className="empty-state"><span>H</span><h2>Bülten kataloğuna şu anda ulaşılamıyor.</h2><p>Seçimlerini eksik veriyle göstermiyoruz. Bağlantı yeniden kurulduğunda bültenlerini burada yönetebilirsin.</p></div>
+        ) : session ? (
           <NewsletterAccountManager
             email={session.account.email}
             verified={session.account.email_verified}

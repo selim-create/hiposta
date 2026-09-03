@@ -13,6 +13,7 @@ export const metadata = publicMetadata({
 
 export default async function PublicationsPage() {
   const catalog = await getCatalog();
+  const catalogAvailable = catalog.source !== "unavailable";
 
   return (
     <>
@@ -22,13 +23,15 @@ export default async function PublicationsPage() {
           <h1>Farklı dünyalar.<br /><span>Tek okuma ritmi.</span></h1>
           <div>
             <p>Ekonomiden gastronomiye, spordan tasarıma; her yayın kendi editoryal kimliğiyle Hiposta’da buluşur.</p>
-            <dl><div><dt>{catalog.stats.publications}</dt><dd>yayın</dd></div><div><dt>{catalog.stats.categories}</dt><dd>kategori</dd></div><div><dt>{catalog.stats.activeNewsletters}</dt><dd>aktif bülten</dd></div></dl>
+            {catalogAvailable ? <dl><div><dt>{catalog.stats.publications}</dt><dd>yayın</dd></div><div><dt>{catalog.stats.categories}</dt><dd>kategori</dd></div><div><dt>{catalog.stats.activeNewsletters}</dt><dd>aktif bülten</dd></div></dl> : <p className="eyebrow">Yayın ağı verilerine şu anda ulaşılamıyor.</p>}
           </div>
         </div>
       </section>
 
       <section className="directory page-shell">
-        {catalog.categories.map((category) => {
+        {!catalogAvailable && <div className="empty-state"><span>H</span><h2>Yayın dizinine şu anda ulaşılamıyor.</h2><p>Bu geçici bir bağlantı sorunu olabilir. Yayın sayısını sıfır göstermek yerine mevcut durumu açıkça belirtiyoruz.</p></div>}
+
+        {catalogAvailable && catalog.categories.map((category) => {
           const items = catalog.publications.filter((publication) => publication.categorySlug === category.slug);
           if (!items.length) return null;
           return (
@@ -56,7 +59,7 @@ export default async function PublicationsPage() {
           );
         })}
 
-        {catalog.stats.comingSoonPublications > 0 && <div className="coming-soon"><p className="eyebrow">Ağ büyüyor</p><h2>{catalog.stats.comingSoonPublications} yayın daha Hiposta’ya hazırlanıyor.</h2><p>Yakında işaretli yayınları şimdiden keşfedebilir, yayın açıldığında haber almak için ilgili sayfayı takip edebilirsin.</p></div>}
+        {catalogAvailable && catalog.stats.comingSoonPublications > 0 && <div className="coming-soon"><p className="eyebrow">Ağ büyüyor</p><h2>{catalog.stats.comingSoonPublications} yayın daha Hiposta’ya hazırlanıyor.</h2><p>Yakında işaretli yayınları şimdiden keşfedebilir, yayın açıldığında haber almak için ilgili sayfayı takip edebilirsin.</p></div>}
       </section>
     </>
   );
