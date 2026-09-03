@@ -9,17 +9,20 @@ Hiposta, Hip Medya ekosistemindeki yayınları, içerikleri ve e-posta bültenle
 
 ## Ürün durumu
 
-Temel launch tamamlanmıştır. Production bugün gerçek Core verisini kullanır; Core erişilemezse production ortamında mock veri gösterilmez. Premium ödeme/tahsilat ve gerçek e-posta delivery sistemi henüz aktif değildir ve ürün içinde bu durum açıkça belirtilir.
+Temel launch tamamlanmıştır. Production bugün gerçek Core verisini kullanır; Core erişilemezse production ortamında mock veri gösterilmez. PayTR ödeme/tahsilat entegrasyonu ve gerçek SES gönderimi henüz aktif değildir ve ürün içinde bu durum açıkça belirtilir.
 
 Aktif temel yüzeyler:
 
 - yayın, kategori, içerik, bülten ve sayı slug rotaları
 - hesap oluşturma, doğrulama, giriş ve session yönetimi
-- bülten keşfi, Guest Wizard V4 ve hesap içi bülten tercihleri
+- bülten keşfi, Guest Wizard V5 ve hesap içi bülten tercihleri
 - kişiselleştirme, kaydetme ve okuma geçmişi altyapısı
+- editorial network / ilişkili içerik keşfi
 - consent-aware birinci taraf ürün analitiği
-- sponsorluk placement gösterimi ve ölçüm altyapısı
-- metadata, canonical, Open Graph, robots.txt ve sitemap
+- yayın, bülten, sayı ve içerik paylaşımı ile dinamik sosyal kartlar
+- sponsorluk placement ve sponsor campaign ölçüm altyapısı
+- Premium üyelik/subscription foundation ve entitlement tabanlı erişim
+- pagination-aware metadata, canonical, Open Graph, robots.txt ve sitemap
 - responsive ve erişilebilir editoryal tasarım sistemi
 
 ## Temel rotalar
@@ -101,12 +104,11 @@ Smoke testi şu yüzeyleri kontrol eder: `/`, `/yayinlar`, `/bultenler`, `/premi
 - Premium erişim kararı frontend tarafından uydurulmaz; gerçek entitlement Core tarafından belirlenir.
 - Analitik eventleri yalnız kullanıcının analitik izni varsa gönderilir.
 
-## Henüz aktif olmayan gelir/delivery katmanları
+## Dış bağımlılık bekleyen katmanlar
 
-Launch sonrası roadmap kapsamında ayrı fazlarda etkinleştirilecektir:
+Foundation kodları hazırdır ancak aşağıdaki production entegrasyonları sözleşme/sağlayıcı aktivasyonu tamamlanmadan açılmaz:
 
-1. gerçek Premium plan, payment, subscription ve entitlement sistemi
-2. transactional ve newsletter delivery için SES/queue altyapısı
-3. gelişmiş sponsorluk campaign/inventory/reporting sistemi
+1. PayTR checkout, ödeme callback'i, kart/token ve recurring tahsilat entegrasyonu
+2. SES production sending, domain doğrulama, SNS event ingest ve newsletter delivery feature gate aktivasyonu
 
 Bu katmanlar aktif edilene kadar sahte fiyat, ödeme başarılı durumu veya e-posta gönderimi üretilmez.
