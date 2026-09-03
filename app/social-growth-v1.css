@@ -1,0 +1,45 @@
+.article-share--surface {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid currentColor;
+  border-top-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.article-share--surface .article-share__label {
+  display: block;
+  margin-bottom: 10px;
+  color: currentColor;
+  opacity: .58;
+  font-size: 9px;
+}
+
+.article-share--surface .article-share__actions {
+  flex-wrap: wrap;
+}
+
+.article-share--surface .article-share__actions a,
+.article-share--surface .article-share__actions button {
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+  color: currentColor;
+}
+
+.article-share--surface .article-share__actions a:hover,
+.article-share--surface .article-share__actions button:hover,
+.article-share--surface .article-share__actions a:focus-visible,
+.article-share--surface .article-share__actions button:focus-visible {
+  border-color: currentColor;
+}
+
+.article-share--surface .article-share__status {
+  display: block;
+  margin-top: 8px;
+  color: currentColor;
+  opacity: .65;
+}
+
+@media (max-width: 720px) {
+  .article-share--surface { margin-top: 20px; }
+  .article-share--surface .article-share__actions { gap: 9px; }
+  .article-share--surface .article-share__actions a,
+  .article-share--surface .article-share__actions button { width: 40px; height: 40px; flex-basis: 40px; }
+}
