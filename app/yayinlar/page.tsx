@@ -1,9 +1,10 @@
 import type { CSSProperties } from "react";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { JsonLd } from "@/components/json-ld";
 import { PublicationMark } from "@/components/publication-mark";
 import { getCatalog } from "@/lib/catalog";
-import { publicMetadata } from "@/lib/seo";
+import { absoluteUrl, publicMetadata } from "@/lib/seo";
 
 export const metadata = publicMetadata({
   title: "Yayınlar",
@@ -14,9 +15,42 @@ export const metadata = publicMetadata({
 export default async function PublicationsPage() {
   const catalog = await getCatalog();
   const catalogAvailable = catalog.source !== "unavailable";
+  const activePublications = catalog.publications.filter((item) => item.status === "active" && !item.isComingSoon);
+  const structuredData = catalogAvailable ? [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Hiposta Yayınları",
+      description: "Hip Medya ekosistemindeki yayınlar ve ilgi alanları.",
+      url: absoluteUrl("/yayinlar"),
+      inLanguage: "tr-TR",
+      isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Aktif Hiposta yayınları",
+      numberOfItems: activePublications.length,
+      itemListElement: activePublications.map((publication, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: publication.name,
+        url: absoluteUrl(`/yayinlar/${publication.slug}`),
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Hiposta", item: absoluteUrl("/") },
+        { "@type": "ListItem", position: 2, name: "Yayınlar", item: absoluteUrl("/yayinlar") },
+      ],
+    },
+  ] : null;
 
   return (
     <>
+      {structuredData && <JsonLd data={structuredData} />}
       <section className="directory-hero page-shell">
         <p className="eyebrow">Hip Medya yayın ağı</p>
         <div className="directory-hero__grid">
