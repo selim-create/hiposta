@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
+import { getPremiumPublicState } from "@/lib/premium";
 import { publicMetadata } from "@/lib/seo";
 
 export const metadata = publicMetadata({
@@ -12,22 +13,27 @@ export const metadata = publicMetadata({
 });
 
 export default async function PremiumPage() {
-  const [catalog, content] = await Promise.all([getCatalog(), getContent({ premium: true, limit: 12 })]);
+  const [catalog, content, premiumState] = await Promise.all([
+    getCatalog(),
+    getContent({ premium: true, limit: 12 }),
+    getPremiumPublicState(),
+  ]);
   const premiumArticles = content.articles.slice(0, 3);
   const catalogAvailable = catalog.source !== "unavailable";
   const publicationLabel = catalogAvailable ? `${catalog.stats.publications} yayının` : "Hiposta yayın ağının";
+  const commerceReady = premiumState.source === "core" && premiumState.commerce_enabled === true && premiumState.plans.length > 0;
 
   return (
     <>
       <section className="premium-hero">
         <div className="page-shell premium-hero__grid">
           <div>
-            <p className="eyebrow">Hiposta Premium · Yakında</p>
+            <p className="eyebrow">Hiposta Premium · {commerceReady ? "Üyelik" : "Yakında"}</p>
             <h1>Gündemi takip etme.<br /><span>Gerçekten anla.</span></h1>
             <p>{publicationLabel} özel dosyaları, uzman analizleri ve haftalık dijital dergisi tek Premium üyelik altında buluşacak.</p>
             <div className="premium-hero__actions">
               <Link className="button button--yellow" href="/kayit-ol">Ücretsiz hesabını oluştur <ArrowRight size={17} /></Link>
-              <small>Premium ödeme ve satın alma akışı henüz aktif değil.</small>
+              <small>{commerceReady ? "Premium üyelik altyapısı hazır; satın alma akışı ödeme entegrasyonuyla açılacak." : "Premium ödeme ve satın alma akışı henüz aktif değil."}</small>
             </div>
           </div>
           <div className="premium-cover"><span className="premium-cover__mark">H<span>+</span></span><p>HIPOSTA DERGİ</p><strong>Yeni<br />dönemin<br />haritası</strong><div><span>SAYI 01</span><span>AĞUSTOS 2026</span></div></div>
@@ -44,9 +50,9 @@ export default async function PremiumPage() {
       <section className="pricing-section">
         <div className="page-shell pricing-section__inner">
           <div>
-            <p className="eyebrow">Premium hazırlanıyor</p>
+            <p className="eyebrow">{commerceReady ? "Premium altyapısı hazır" : "Premium hazırlanıyor"}</p>
             <h2>Önce güçlü bir okuma deneyimi.<br />Sonra gerçek üyelik.</h2>
-            <p>Fiyatlandırma, ödeme sağlayıcısı ve üyelik koşulları kesinleştiğinde burada gerçek bilgilerle yayınlanacak. Şu anda herhangi bir Premium ödeme veya satın alma işlemi yapılmıyor.</p>
+            <p>{premiumState.source === "unavailable" ? "Premium servisinin güncel durumu şu anda doğrulanamıyor. Fiyat veya satın alma bilgisi tahmin edilmiyor." : "Fiyatlandırma, PayTR sözleşmesi ve ödeme akışı kesinleştiğinde burada yalnızca gerçek plan bilgileri yayınlanacak. Şu anda herhangi bir Premium ödeme veya satın alma işlemi yapılmıyor."}</p>
           </div>
           <div className="pricing-cards">
             <article className="pricing-card--featured">
