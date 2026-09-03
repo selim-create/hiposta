@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { NewsletterAccountManager } from "@/components/newsletter-account-manager";
-import { NewsletterGuestWizard } from "@/components/newsletter-guest-wizard";
+import { NewsletterGuestWizardV5 } from "@/components/newsletter-guest-wizard-v5";
 import { getClientAuthSession, type ClientAuthSession } from "@/lib/client-session";
 import type { Category, Newsletter, NewsletterBundle, Publication } from "@/lib/types";
 
@@ -59,7 +59,7 @@ export function NewsletterDirectoryExperience({ categories, newsletters, bundles
         ) : (
           <>
             <div><p className="eyebrow">{activeNewsletterCount} bülten · {categoryCount} kategori</p><h1>Gelen kutun,<br /><span>senin yayın akışın.</span></h1></div>
-            <div><p>Önce ilgi alanını, sonra takip etmek istediğin yayınları seç. Yalnızca sana uygun bültenleri gör, istersen hazır paketlerle seçimini genişlet ve tek adımda tamamla.</p><dl><div><dt>01</dt><dd>İlgi alanını seç</dd></div><div><dt>02</dt><dd>Yayınlarını belirle</dd></div><div><dt>03</dt><dd>Bültenlerini oluştur</dd></div></dl></div>
+            <div><p>İlgi alanını ve istediğin akış yoğunluğunu seç. Hiposta gerçek yayın takvimlerini kullanarak sana uygun bir başlangıç önerisi hazırlasın; son kararı yine sen ver.</p><dl><div><dt>01</dt><dd>İlgi + tempo</dd></div><div><dt>02</dt><dd>Önerilen akış</dd></div><div><dt>03</dt><dd>Tek adımda kaydet</dd></div></dl></div>
           </>
         )}
       </section>
@@ -76,7 +76,7 @@ export function NewsletterDirectoryExperience({ categories, newsletters, bundles
           />
         ) : (
           <>
-            <NewsletterGuestWizard categories={categories} newsletters={newsletters} bundles={bundles} publications={publications} />
+            <NewsletterGuestWizardV5 categories={categories} newsletters={newsletters} bundles={bundles} publications={publications} />
             <p className="legal-inline-notice legal-inline-notice--wizard">Bülten seçimi sırasında verdiğin e-posta ve tercihlerin nasıl işlendiğini <Link href="/kvkk-aydinlatma-metni" target="_blank">KVKK Aydınlatma Metni</Link>, abonelik kurallarını <Link href="/uyelik-ve-abonelik-kosullari" target="_blank">Üyelik ve Abonelik Koşulları</Link> açıklar.</p>
           </>
         )}
