@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublicationPage({ params }: Props) {
   const slug = (await params).slug;
-  const [catalog, content] = await Promise.all([getCatalog(), getContent({ publication: slug, limit: 24 })]);
+  const [catalog, content, session] = await Promise.all([getCatalog(), getContent({ publication: slug, limit: 24 }), getAuthSession()]);
   const publication = catalog.publications.find((item) => item.slug === slug);
   if (!publication) notFound();
   const category = catalog.categories.find((item) => item.slug === publication.categorySlug);
@@ -35,6 +36,7 @@ export default async function PublicationPage({ params }: Props) {
 
   const publicationArticles = publication.isComingSoon ? [] : content.articles;
   const publicationNewsletters = catalog.newsletters.filter((newsletter) => newsletter.publicationSlug === publication.slug);
+  const activeSubscriptions = new Set(session?.subscriptions.filter((item) => item.status === "active").map((item) => item.newsletter_slug) ?? []);
   const style = { "--publication-hero": publication.color, "--publication-ink": publication.foreground } as CSSProperties;
   const collectionSchema = publication.status === "active" && !publication.isComingSoon ? {
     "@context": "https://schema.org", "@type": "CollectionPage", name: publication.name, description: publication.longDescription,
@@ -72,7 +74,7 @@ export default async function PublicationPage({ params }: Props) {
         <div className="page-shell">
           <div className="newsletter-showcase__heading"><div><p className="eyebrow">Doğrudan gelen kutuna</p><h2>{publication.name}<br />bültenleri</h2></div><p>{publication.isComingSoon ? "Bu yayın için bültenler hazırlanıyor. Haber Ver listesine katılarak açılışı ilk öğrenebilirsin." : "İçerikleri siteye gelmeden, kendi ritminde takip et. Her bültenden istediğin zaman ayrılabilirsin."}</p></div>
           <div className="newsletter-grid">
-            {publicationNewsletters.map((newsletter) => <NewsletterCard key={newsletter.slug} newsletter={newsletter} publication={publication} />)}
+            {publicationNewsletters.map((newsletter) => <NewsletterCard key={newsletter.slug} newsletter={newsletter} publication={publication} showSubscriptionAction authenticated={Boolean(session)} verified={Boolean(session?.account.email_verified)} subscribed={activeSubscriptions.has(newsletter.slug)} source="publication_newsletter_card" />)}
             {!publicationNewsletters.length && publication.isComingSoon && <article className="newsletter-more-card"><span>H</span><h3>Bu yayın yakında Hiposta’da.</h3><Link href="/yayinlar">Diğer yayınları keşfet <ArrowRight size={16} /></Link></article>}
             {publicationNewsletters.length > 0 && <article className="newsletter-more-card"><span>H</span><h3>Tüm ilgi alanlarını tek yerden seç.</h3><Link href="/bultenler">Bülten merkezine git <ArrowRight size={16} /></Link></article>}
           </div>
