@@ -7,10 +7,12 @@ import { ArticleCard } from "@/components/article-card";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { PublicationMark } from "@/components/publication-mark";
+import { ShareActions } from "@/components/share-actions";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
+import { socialCardUrl } from "@/lib/social";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -22,7 +24,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const publication = (await getCatalog()).publications.find((item) => item.slug === slug);
   if (!publication) return {};
   if (publication.status !== "active" || publication.isComingSoon) return { title: publication.name, description: publication.longDescription, robots: { index: false, follow: true } };
-  return publicMetadata({ title: publication.name, description: publication.longDescription, path: `/yayinlar/${publication.slug}`, image: publication.logoUrl });
+  return publicMetadata({
+    title: publication.name,
+    description: publication.longDescription,
+    path: `/yayinlar/${publication.slug}`,
+    image: socialCardUrl({ kind: "Yayın", eyebrow: "Hiposta · Hip Medya yayın ağı", title: publication.name, description: publication.description || publication.longDescription, accent: publication.color }),
+  });
 }
 
 export default async function PublicationPage({ params }: Props) {
@@ -36,9 +43,10 @@ export default async function PublicationPage({ params }: Props) {
   const publicationArticles = publication.isComingSoon ? [] : content.articles;
   const publicationNewsletters = catalog.newsletters.filter((newsletter) => newsletter.publicationSlug === publication.slug);
   const style = { "--publication-hero": publication.color, "--publication-ink": publication.foreground } as CSSProperties;
+  const canonical = absoluteUrl(`/yayinlar/${publication.slug}`);
   const collectionSchema = publication.status === "active" && !publication.isComingSoon ? {
     "@context": "https://schema.org", "@type": "CollectionPage", name: publication.name, description: publication.longDescription,
-    url: absoluteUrl(`/yayinlar/${publication.slug}`), inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
+    url: canonical, inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
   } : null;
 
   return (
@@ -57,6 +65,7 @@ export default async function PublicationPage({ params }: Props) {
             <div className="publication-hero__about">
               <p>{publication.longDescription}</p>
               <dl><div><dt>Yayın ritmi</dt><dd>{publication.isComingSoon ? "Hazırlanıyor" : publication.cadence}</dd></div><div><dt>Abone</dt><dd>{publication.reach}</dd></div><div><dt>Kategori</dt><dd>{category.name}</dd></div></dl>
+              {!publication.isComingSoon && <ShareActions url={canonical} title={publication.name} description={publication.description} source="publication" mode="surface" label="Bu yayını paylaş" />}
               {publication.isComingSoon && <div className="publication-waitlist"><p className="eyebrow">İlk sen öğren</p><h2>Yayın açıldığında haber verelim.</h2><WaitlistForm publicationSlug={publication.slug} publicationName={publication.name} /></div>}
             </div>
           </div>
