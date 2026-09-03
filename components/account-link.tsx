@@ -3,6 +3,7 @@
 import { Bookmark, ChevronDown, Clock3, Compass, LayoutDashboard, Mail, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getClientAuthSession } from "@/lib/client-session";
 
 const accountItems = [
   { href: "/hesabim", label: "Hesap özeti", icon: LayoutDashboard },
@@ -19,9 +20,7 @@ export function AccountLink() {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/auth/session", { cache: "no-store" })
-      .then((response) => { if (active) setAuthenticated(response.ok); })
-      .catch(() => { if (active) setAuthenticated(false); });
+    void getClientAuthSession().then((session) => { if (active) setAuthenticated(Boolean(session)); });
     return () => { active = false; };
   }, []);
 
