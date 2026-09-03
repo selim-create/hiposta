@@ -8,10 +8,12 @@ import { JsonLd } from "@/components/json-ld";
 import { NewsletterCard } from "@/components/newsletter-card";
 import { NewsletterSubscribeAction } from "@/components/newsletter-subscribe-action";
 import { PublicationMark } from "@/components/publication-mark";
+import { ShareActions } from "@/components/share-actions";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { getNewsletterIssues } from "@/lib/issues";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
+import { socialCardUrl } from "@/lib/social";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = true;
@@ -24,7 +26,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!newsletter) return {};
   const publication = catalog.publications.find((item) => item.slug === newsletter.publicationSlug);
   if (!publication || publication.status !== "active" || publication.isComingSoon) return { title: newsletter.name, description: newsletter.longDescription, robots: { index: false, follow: true } };
-  return publicMetadata({ title: newsletter.name, description: newsletter.longDescription, path: `/bultenler/${newsletter.slug}`, image: publication.logoUrl });
+  return publicMetadata({
+    title: newsletter.name,
+    description: newsletter.longDescription,
+    path: `/bultenler/${newsletter.slug}`,
+    image: socialCardUrl({ kind: "Bülten", eyebrow: publication.name, title: newsletter.name, description: newsletter.description || newsletter.longDescription, accent: newsletter.accent }),
+  });
 }
 
 export default async function NewsletterPage({ params }: Props) {
@@ -38,10 +45,11 @@ export default async function NewsletterPage({ params }: Props) {
   const recentArticles = content.articles.slice(0, 3);
   const crossSell = catalog.newsletters.filter((item) => item.slug !== newsletter.slug && item.categorySlug !== newsletter.categorySlug).slice(0, 3);
   const style = { "--newsletter-hero": newsletter.accent, "--newsletter-ink": publication.foreground } as CSSProperties;
+  const canonical = absoluteUrl(`/bultenler/${newsletter.slug}`);
   const indexable = publication.status === "active" && !publication.isComingSoon;
   const collectionSchema = indexable ? {
     "@context": "https://schema.org", "@type": "CollectionPage", name: newsletter.name, description: newsletter.longDescription,
-    url: absoluteUrl(`/bultenler/${newsletter.slug}`), inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
+    url: canonical, inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
     about: { "@type": "Organization", name: publication.name },
   } : null;
 
@@ -57,6 +65,7 @@ export default async function NewsletterPage({ params }: Props) {
               <p className="eyebrow">{newsletter.format}</p>
               <h1>{newsletter.name}</h1>
               <p className="newsletter-detail-hero__dek">{newsletter.longDescription}</p>
+              <ShareActions url={canonical} title={newsletter.name} description={newsletter.description} source="newsletter" mode="surface" label="Bu bülteni paylaş" />
             </div>
             <aside>
               <div className="newsletter-specs">

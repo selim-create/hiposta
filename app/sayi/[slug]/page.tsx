@@ -8,10 +8,12 @@ import { ArticleCard } from "@/components/article-card";
 import { JsonLd } from "@/components/json-ld";
 import { NewsletterSubscribeAction } from "@/components/newsletter-subscribe-action";
 import { PublicationMark } from "@/components/publication-mark";
+import { ShareActions } from "@/components/share-actions";
 import { SponsorshipBlock } from "@/components/sponsorship-block";
 import { getCatalog } from "@/lib/catalog";
 import { getNewsletterIssue, getNewsletterIssues } from "@/lib/issues";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
+import { socialCardUrl } from "@/lib/social";
 import { sponsorshipsFor } from "@/lib/sponsorship";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -25,7 +27,16 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const issue = await getNewsletterIssue((await params).slug);
   if (!issue) return {};
-  return publicMetadata({ title: issue.title, description: issue.preheader || `${issue.newsletterName} arşiv sayısı`, path: `/sayi/${issue.slug}`, type: "article", publishedTime: issue.publishedAt, modifiedTime: issue.updatedAt || issue.publishedAt });
+  const description = issue.preheader || `${issue.newsletterName} arşiv sayısı`;
+  return publicMetadata({
+    title: issue.title,
+    description,
+    path: `/sayi/${issue.slug}`,
+    image: socialCardUrl({ kind: "Bülten sayısı", eyebrow: issue.newsletterName, title: issue.title, description, accent: "#3157ff" }),
+    type: "article",
+    publishedTime: issue.publishedAt,
+    modifiedTime: issue.updatedAt || issue.publishedAt,
+  });
 }
 
 export default async function IssuePage({ params }: Props) {
@@ -50,7 +61,7 @@ export default async function IssuePage({ params }: Props) {
   return (
     <article className="issue-page" style={style}>
       <JsonLd data={[issueSchema, breadcrumbSchema]} />
-      <header className="issue-hero"><div className="page-shell issue-hero__inner"><div className="breadcrumb"><Link href="/bultenler">Bültenler</Link><span>/</span><Link href={`/bultenler/${newsletter.slug}`}>{newsletter.name}</Link><span>/</span><span>{issue.displayDate}</span></div><div className="issue-hero__grid"><div><PublicationMark publication={publication} linked={false} /><p className="eyebrow">{newsletter.name} · Web arşivi</p><h1>{issue.title}</h1>{issue.preheader && <p className="issue-hero__dek">{issue.preheader}</p>}</div><aside><div className="issue-hero__date"><CalendarDays size={18} /><span><small>Yayın tarihi</small>{issue.displayDate}</span></div><Link className="inline-arrow-link" href={`/bultenler/${newsletter.slug}`}><ArrowLeft size={15} /> Tüm sayılar</Link></aside></div></div></header>
+      <header className="issue-hero"><div className="page-shell issue-hero__inner"><div className="breadcrumb"><Link href="/bultenler">Bültenler</Link><span>/</span><Link href={`/bultenler/${newsletter.slug}`}>{newsletter.name}</Link><span>/</span><span>{issue.displayDate}</span></div><div className="issue-hero__grid"><div><PublicationMark publication={publication} linked={false} /><p className="eyebrow">{newsletter.name} · Web arşivi</p><h1>{issue.title}</h1>{issue.preheader && <p className="issue-hero__dek">{issue.preheader}</p>}<ShareActions url={canonical} title={issue.title} description={issue.preheader || newsletter.name} source="issue" mode="surface" label="Bu sayıyı paylaş" /></div><aside><div className="issue-hero__date"><CalendarDays size={18} /><span><small>Yayın tarihi</small>{issue.displayDate}</span></div><Link className="inline-arrow-link" href={`/bultenler/${newsletter.slug}`}><ArrowLeft size={15} /> Tüm sayılar</Link></aside></div></div></header>
 
       <div className="page-shell issue-sheet-wrap">
         <section className="issue-sheet">
