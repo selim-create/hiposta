@@ -24,8 +24,8 @@ export async function SiteFooter() {
         <div><p className="footer-label">Yasal</p><nav><Link href="/gizlilik-politikasi">Gizlilik</Link><Link href="/kvkk-aydinlatma-metni">KVKK</Link><Link href="/cerez-politikasi">Çerezler</Link><Link href="/kullanim-kosullari">Kullanım koşulları</Link><Link href="/uyelik-ve-abonelik-kosullari">Üyelik & abonelik</Link></nav></div>
       </div>
       <div className="page-shell site-footer__bottom">
-        <span>© 2026 Hip Medya Limited Şirketi</span>
-        <span>Hiposta · içerik, bülten ve üyelik platformu</span>
+        <span>© 2026 Hiposta. Tüm hakları saklıdır. Hiposta, <a href="https://hipmedya.com" target="_blank" rel="noopener noreferrer">Hip Medya</a> markasıdır.</span>
+        <span>İçerik, bülten ve üyelik platformu</span>
         <div><PrivacyPreferencesLink /><Link href="/yardim">Destek</Link><Link href="/iletisim">İletişim</Link></div>
       </div>
     </footer>
