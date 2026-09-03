@@ -1,6 +1,7 @@
 import type { Article, NewsletterIssue } from "@/lib/types";
 import { fetchPublicCore, publicCoreFetchInit } from "@/lib/public-core-fetch";
 import { mapApiSponsorships, type ApiSponsorship } from "@/lib/sponsorship";
+import type { PaginationMeta } from "@/lib/content";
 
 const CORE_BASE_URL = (process.env.HIPOSTA_CORE_URL ?? "https://api.hiposta.com/wp-json/hiposta/v1").replace(/\/$/, "");
 const CONTENT_PLACEHOLDER = "/content-placeholder.svg";
@@ -17,7 +18,7 @@ type ApiIssue = {
   newsletter: { slug: string; name: string }; publication: { slug: string; name: string }; intro_html?: string; items?: ApiIssueArticle[]; sponsorships?: ApiSponsorship[];
 };
 
-type ApiIssueListResponse = { data: ApiIssue[] };
+type ApiIssueListResponse = { data: ApiIssue[]; pagination?: PaginationMeta };
 type ApiIssueDetailResponse = { data: ApiIssue };
 
 function dateValue(value: string | null | undefined): Date { if (!value) return new Date(0); const iso = value.includes("T") ? value : `${value.replace(" ", "T")}Z`; const parsed = new Date(iso); return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed; }
@@ -44,19 +45,37 @@ function mapIssue(item: ApiIssue): NewsletterIssue {
   };
 }
 
-export async function getNewsletterIssues(newsletterSlug?: string): Promise<NewsletterIssue[]> {
+export async function getNewsletterIssues(newsletterSlug?: string, page = 1, perPage = 100): Promise<NewsletterIssue[]> {
+  const result = await getNewsletterIssuesPage(newsletterSlug, page, perPage);
+  return result.issues;
+}
+
+export async function getNewsletterIssuesPage(newsletterSlug?: string, page = 1, perPage = 100): Promise<{ issues: NewsletterIssue[]; pagination?: PaginationMeta; source: "core" | "unavailable" }> {
   const params = new URLSearchParams();
   if (newsletterSlug) params.set("newsletter", newsletterSlug);
-  const query = params.toString();
+  params.set("page", String(Math.max(1, page)));
+  params.set("per_page", String(Math.min(100, Math.max(1, perPage))));
   try {
-    const response = await fetchPublicCore(`${CORE_BASE_URL}/issues${query ? `?${query}` : ""}`, publicCoreFetchInit());
+    const response = await fetchPublicCore(`${CORE_BASE_URL}/issues?${params.toString()}`, publicCoreFetchInit());
     if (!response.ok) throw new Error(`Hiposta Core issues returned ${response.status}`);
     const payload = (await response.json()) as ApiIssueListResponse;
-    return payload.data.map(mapIssue);
+    return { issues: payload.data.map(mapIssue), pagination: payload.pagination, source: "core" };
   } catch (error) {
     console.error("Hiposta Core issues unavailable.", error);
-    return [];
+    return { issues: [], source: "unavailable" };
   }
+}
+
+export async function getAllNewsletterIssues(newsletterSlug?: string): Promise<NewsletterIssue[]> {
+  const first = await getNewsletterIssuesPage(newsletterSlug, 1, 100);
+  if (first.source !== "core" || !first.pagination || first.pagination.total_pages <= 1) return first.issues;
+  const issues = [...first.issues];
+  for (let page = 2; page <= first.pagination.total_pages; page += 1) {
+    const snapshot = await getNewsletterIssuesPage(newsletterSlug, page, 100);
+    if (snapshot.source !== "core") break;
+    issues.push(...snapshot.issues);
+  }
+  return issues;
 }
 
 export async function getNewsletterIssue(slug: string): Promise<NewsletterIssue | null> {
