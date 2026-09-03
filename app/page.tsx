@@ -7,7 +7,6 @@ import { HomePersonalisedRecommendations } from "@/components/home-personalised-
 import { NewsletterCard } from "@/components/newsletter-card";
 import { NewsletterSubscribeAction } from "@/components/newsletter-subscribe-action";
 import { PublicationMark } from "@/components/publication-mark";
-import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
 import { publicMetadata, SITE_DESCRIPTION } from "@/lib/seo";
@@ -19,7 +18,7 @@ export const metadata = publicMetadata({
 });
 
 export default async function HomePage() {
-  const [catalog, content, session] = await Promise.all([getCatalog(), getContent({ limit: 20 }), getAuthSession()]);
+  const [catalog, content] = await Promise.all([getCatalog(), getContent({ limit: 20 })]);
   const articles = content.articles;
   const catalogAvailable = catalog.source !== "unavailable";
   const articlesLead = articles.find((article) => article.featured) ?? articles[0];
@@ -32,9 +31,6 @@ export default async function HomePage() {
   const featuredPublications = catalog.publications.filter((item) => item.featured && !item.isComingSoon).slice(0, 4);
   const dailyNewsletter = catalog.newsletters.find((item) => item.slug === "hiposta-gundem") ?? catalog.newsletters[0];
   const publicationLabel = catalogAvailable ? `${catalog.stats.publications} yayının` : "Hiposta yayın ağının";
-  const activeSubscriptions = new Set(session?.subscriptions.filter((item) => item.status === "active").map((item) => item.newsletter_slug) ?? []);
-  const authenticated = Boolean(session);
-  const verified = Boolean(session?.account.email_verified);
 
   return (
     <div className="home-v2">
@@ -50,7 +46,7 @@ export default async function HomePage() {
           <Link className="home-lead__image" href={`/icerik/${lead.slug}`} aria-label={lead.title}><Image src={lead.heroImage} alt={lead.heroAlt} fill priority sizes="(max-width: 900px) 100vw, 70vw" /></Link><div className="home-lead__meta"><span>{lead.author}</span><span>{lead.displayDate} · {lead.readTime}</span></div>
         </article>
         <aside className="home-lead__aside">
-          {dailyNewsletter && <div className="daily-newsletter daily-newsletter--v2"><div className="daily-newsletter__top"><span>Başlangıç bülteni</span><b>Ücretsiz</b></div><div className="daily-newsletter__issue">HIPOSTA / GÜNDEM</div><h2>{dailyNewsletter.name}</h2><p>{dailyNewsletter.description}</p><NewsletterSubscribeAction newsletterName={dailyNewsletter.name} newsletterSlug={dailyNewsletter.slug} authenticated={authenticated} verified={verified} subscribed={activeSubscriptions.has(dailyNewsletter.slug)} compact source="homepage_daily" /></div>}
+          {dailyNewsletter && <div className="daily-newsletter daily-newsletter--v2"><div className="daily-newsletter__top"><span>Başlangıç bülteni</span><b>Ücretsiz</b></div><div className="daily-newsletter__issue">HIPOSTA / GÜNDEM</div><h2>{dailyNewsletter.name}</h2><p>{dailyNewsletter.description}</p><NewsletterSubscribeAction newsletterName={dailyNewsletter.name} newsletterSlug={dailyNewsletter.slug} compact source="homepage_daily" /></div>}
           <div className="signal-card signal-card--v2"><div className="signal-card__head"><span>Keşfet</span><span>Konular</span></div>{catalog.categories.slice(0, 3).map((category, index) => <Link key={category.slug} href={`/kategori/${category.slug}`}><span>0{index + 1}</span><p>{category.shortName}</p><ArrowUpRight size={14} /></Link>)}</div>
         </aside>
       </section>}
@@ -67,7 +63,7 @@ export default async function HomePage() {
 
       {feed.length > 0 && <section className="feed-section"><div className="page-shell feed-section__grid"><div><div className="section-heading section-heading--small section-heading--rule"><div><p className="eyebrow">Son eklenenler</p><h2>Okuma listesi</h2></div></div><div className="article-feed">{feed.map((article) => <ArticleCard key={article.slug} article={article} variant="horizontal" />)}</div></div><aside className="platform-note"><span className="platform-note__stamp">H</span><p className="eyebrow">Hiposta nasıl çalışır?</p><h2>Seç. Birleştir. Yönet.</h2><p>Her yayın kendi sesini korur. Sen yalnızca hangi konuların gelen kutuna ulaşacağını seçersin.</p>{catalogAvailable && <dl><div><dt>{catalog.stats.publications}</dt><dd>yayın</dd></div><div><dt>{catalog.stats.activeNewsletters}</dt><dd>aktif bülten</dd></div><div><dt>{catalog.stats.categories}</dt><dd>kategori</dd></div></dl>}<Link className="inline-arrow-link" href="/hakkimizda">Platformu tanı <ArrowRight size={16} /></Link></aside></div></section>}
 
-      <section className="newsletter-showcase newsletter-showcase--v2 page-shell"><div className="newsletter-showcase__heading"><div><p className="eyebrow">Gelen kutunu yeniden kur</p><h2>Bir bülten değil,<br />kişisel yayın akışın.</h2></div><p>Ekonomi sabah gelsin, tarifler iş çıkışından önce, haftanın en iyi fikirleri pazar günü. Seç, birleştir, tek yerden yönet.</p></div><div className="newsletter-grid">{featuredNewsletters.map((newsletter) => <NewsletterCard key={newsletter.slug} newsletter={newsletter} publication={catalog.publications.find((item) => item.slug === newsletter.publicationSlug)} showSubscriptionAction authenticated={authenticated} verified={verified} subscribed={activeSubscriptions.has(newsletter.slug)} source="homepage_featured_card" />)}</div><div className="newsletter-showcase__footer"><span><Clock3 size={14} /> Sıklığı ve konuyu sen belirlersin.</span><Link className="button button--primary" href="/bultenler">Bültenlerini seç <ArrowRight size={16} /></Link></div></section>
+      <section className="newsletter-showcase newsletter-showcase--v2 page-shell"><div className="newsletter-showcase__heading"><div><p className="eyebrow">Gelen kutunu yeniden kur</p><h2>Bir bülten değil,<br />kişisel yayın akışın.</h2></div><p>Ekonomi sabah gelsin, tarifler iş çıkışından önce, haftanın en iyi fikirleri pazar günü. Seç, birleştir, tek yerden yönet.</p></div><div className="newsletter-grid">{featuredNewsletters.map((newsletter) => <NewsletterCard key={newsletter.slug} newsletter={newsletter} publication={catalog.publications.find((item) => item.slug === newsletter.publicationSlug)} showSubscriptionAction source="homepage_featured_card" />)}</div><div className="newsletter-showcase__footer"><span><Clock3 size={14} /> Sıklığı ve konuyu sen belirlersin.</span><Link className="button button--primary" href="/bultenler">Bültenlerini seç <ArrowRight size={16} /></Link></div></section>
     </div>
   );
 }
