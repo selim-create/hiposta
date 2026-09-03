@@ -24,6 +24,10 @@ function uniqueArticles(groups: Article[][]): Article[] {
   return Array.from(bySlug.values());
 }
 
+function pause(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = await getCatalog();
   const fixed: MetadataRoute.Sitemap = [
@@ -52,16 +56,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const activePublicationSlugs = new Set(activePublications.map((item) => item.slug));
   const activeNewsletters = catalog.newsletters.filter((item) => activePublicationSlugs.has(item.publicationSlug));
 
-  const [recentContent, publicationContent, issues] = await Promise.all([
-    getContent({ limit: 50 }),
-    Promise.all(activePublications.map((publication) => getContent({ publication: publication.slug, limit: 50 }))),
-    getNewsletterIssues(),
-  ]);
+  const [recentContent, issues] = await Promise.all([getContent({ limit: 50 }), getNewsletterIssues()]);
+  const contentGroups: Article[][] = recentContent.source === "core" ? [recentContent.articles] : [];
 
-  const contentSources = [recentContent, ...publicationContent];
-  if (contentSources.some((snapshot) => snapshot.source !== "core")) return fixed;
+  // The Core content endpoint currently caps each request at 50 items. Only expand
+  // publication-by-publication when the global result actually hits that cap.
+  // Fetch sequentially with a tiny pause so sitemap generation does not burst the API.
+  if (recentContent.source === "core" && recentContent.articles.length >= 50) {
+    for (const publication of activePublications) {
+      const snapshot = await getContent({ publication: publication.slug, limit: 50 });
+      if (snapshot.source === "core") contentGroups.push(snapshot.articles);
+      await pause(75);
+    }
+  }
 
-  const articles = uniqueArticles(contentSources.map((snapshot) => snapshot.articles));
+  const articles = uniqueArticles(contentGroups);
   const activeCategorySlugs = new Set([
     ...activePublications.map((item) => item.categorySlug),
     ...activeNewsletters.map((item) => item.categorySlug),
