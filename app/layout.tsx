@@ -3,7 +3,7 @@ import { JsonLd } from "@/components/json-ld";
 import { PrivacyConsentCenter } from "@/components/privacy-consent";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { absoluteUrl, getSiteUrl, SITE_DESCRIPTION } from "@/lib/seo";
+import { absoluteUrl, DEFAULT_SOCIAL_IMAGE_PATH, getSiteUrl, SITE_DESCRIPTION } from "@/lib/seo";
 import "./globals.css";
 import "./newsletter-issues.css";
 import "./visual-foundation-v2.css";
@@ -27,7 +27,6 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: "Hiposta",
   keywords: ["Hiposta", "Hip Medya", "e-posta bülteni", "premium içerik", "yayın platformu"],
-  alternates: { canonical: absoluteUrl("/") },
   openGraph: {
     type: "website",
     locale: "tr_TR",
@@ -35,13 +34,13 @@ export const metadata: Metadata = {
     url: absoluteUrl("/"),
     title: "Hiposta — İlgi alanın kadar posta",
     description: "Farklı yayınlar, tek keşif ve abonelik deneyimi.",
-    images: [{ url: absoluteUrl("/hiposta-logo.svg"), alt: "Hiposta" }],
+    images: [{ url: absoluteUrl(DEFAULT_SOCIAL_IMAGE_PATH), alt: "Hiposta — İlgi alanın kadar posta" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Hiposta — İlgi alanın kadar posta",
     description: "Farklı yayınlar, tek keşif ve abonelik deneyimi.",
-    images: [absoluteUrl("/hiposta-logo.svg")],
+    images: [absoluteUrl(DEFAULT_SOCIAL_IMAGE_PATH)],
   },
   icons: { icon: "/favicon.svg" },
 };
