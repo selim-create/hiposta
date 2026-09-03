@@ -1,6 +1,7 @@
 export const CONSENT_VERSION = "1.0";
 export const CONSENT_STORAGE_KEY = "hiposta.privacy.consent";
 export const CONSENT_OPEN_EVENT = "hiposta:privacy-open";
+export const CONSENT_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 
 export type PrivacyConsent = {
   necessary: true;
@@ -15,8 +16,18 @@ export function readPrivacyConsent(): PrivacyConsent | null {
     const raw = window.localStorage.getItem(CONSENT_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<PrivacyConsent>;
-    if (parsed.version !== CONSENT_VERSION || typeof parsed.analytics !== "boolean") return null;
-    return { necessary: true, analytics: parsed.analytics, version: CONSENT_VERSION, updatedAt: String(parsed.updatedAt || "") };
+    const updatedAt = Date.parse(String(parsed.updatedAt || ""));
+    if (
+      parsed.version !== CONSENT_VERSION ||
+      typeof parsed.analytics !== "boolean" ||
+      !Number.isFinite(updatedAt) ||
+      Date.now() - updatedAt > CONSENT_MAX_AGE_MS
+    ) {
+      window.localStorage.removeItem(CONSENT_STORAGE_KEY);
+      clearAnalyticsStorage();
+      return null;
+    }
+    return { necessary: true, analytics: parsed.analytics, version: CONSENT_VERSION, updatedAt: String(parsed.updatedAt) };
   } catch {
     return null;
   }
@@ -44,11 +55,19 @@ export function savePrivacyConsent(analytics: boolean): PrivacyConsent {
 export function clearAnalyticsStorage(): void {
   if (typeof window === "undefined") return;
   try {
-    const keys: string[] = [];
+    const localKeys: string[] = [];
     for (let index = 0; index < window.localStorage.length; index += 1) {
       const key = window.localStorage.key(index);
-      if (key === "hiposta.analytics.anonymous_id" || key?.startsWith("hiposta.analytics.view.")) keys.push(key);
+      if (key === "hiposta.analytics.anonymous_id" || key?.startsWith("hiposta.analytics.view.")) localKeys.push(key);
     }
-    keys.forEach((key) => window.localStorage.removeItem(key));
+    localKeys.forEach((key) => window.localStorage.removeItem(key));
+  } catch {}
+  try {
+    const sessionKeys: string[] = [];
+    for (let index = 0; index < window.sessionStorage.length; index += 1) {
+      const key = window.sessionStorage.key(index);
+      if (key?.startsWith("hiposta.analytics.view.")) sessionKeys.push(key);
+    }
+    sessionKeys.forEach((key) => window.sessionStorage.removeItem(key));
   } catch {}
 }
