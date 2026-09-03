@@ -10,6 +10,7 @@ const modules = [
   { href: "/hesabim/kaydettiklerim", title: "Kaydettiklerim", description: "Daha sonra dönmek istediğin içeriklerden oluşan kişisel kütüphanen.", icon: Bookmark },
   { href: "/hesabim/okuma-gecmisi", title: "Okuma Geçmişi", description: "Son açtığın içerikleri kronolojik olarak yeniden bul.", icon: Clock3 },
   { href: "/hesabim/bultenler", title: "Bültenler", description: "Aktif bülten aboneliklerini ve gelen kutusu tercihlerini yönet.", icon: Mail },
+  { href: "/hesabim/uyelik", title: "Üyelik", description: "Ücretsiz veya Premium üyelik durumunu ve erişim haklarını görüntüle.", icon: Crown },
   { href: "/hesabim/profil", title: "Profil", description: "Adını ve hesap bilgilerini güncelle.", icon: UserRound },
   { href: "/hesabim/guvenlik", title: "Güvenlik", description: "Şifreni ve e-posta doğrulama durumunu yönet.", icon: ShieldCheck },
 ];
