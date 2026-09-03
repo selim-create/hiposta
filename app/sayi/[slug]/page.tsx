@@ -6,9 +6,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
 import { JsonLd } from "@/components/json-ld";
+import { NewsletterSubscribeAction } from "@/components/newsletter-subscribe-action";
 import { PublicationMark } from "@/components/publication-mark";
 import { SponsorshipBlock } from "@/components/sponsorship-block";
-import { SubscribeForm } from "@/components/subscribe-form";
+import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getNewsletterIssue, getNewsletterIssues } from "@/lib/issues";
 import { absoluteUrl, publicMetadata } from "@/lib/seo";
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function IssuePage({ params }: Props) {
   const slug = (await params).slug;
-  const [issue, catalog] = await Promise.all([getNewsletterIssue(slug), getCatalog()]);
+  const [issue, catalog, session] = await Promise.all([getNewsletterIssue(slug), getCatalog(), getAuthSession()]);
   if (!issue) notFound();
 
   const newsletter = catalog.newsletters.find((item) => item.slug === issue.newsletterSlug);
@@ -44,6 +45,7 @@ export default async function IssuePage({ params }: Props) {
   const midIndex = items.length > 1 ? Math.floor(items.length / 2) - 1 : 0;
   const style = { "--issue-accent": newsletter.accent, "--issue-ink": publication.foreground } as CSSProperties;
   const canonical = absoluteUrl(`/sayi/${issue.slug}`);
+  const subscribed = Boolean(session?.subscriptions.some((item) => item.newsletter_slug === newsletter.slug && item.status === "active"));
   const issueSchema = { "@context": "https://schema.org", "@type": "Article", headline: issue.title, description: issue.preheader || `${issue.newsletterName} arşiv sayısı`, datePublished: issue.publishedAt, dateModified: issue.updatedAt || issue.publishedAt, publisher: { "@type": "Organization", name: "Hiposta", url: absoluteUrl("/"), logo: { "@type": "ImageObject", url: absoluteUrl("/hiposta-logo.svg") } }, mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, isPartOf: { "@type": "Periodical", name: newsletter.name, url: absoluteUrl(`/bultenler/${newsletter.slug}`) }, inLanguage: "tr-TR" };
   const breadcrumbSchema = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Bültenler", item: absoluteUrl("/bultenler") }, { "@type": "ListItem", position: 2, name: newsletter.name, item: absoluteUrl(`/bultenler/${newsletter.slug}`) }, { "@type": "ListItem", position: 3, name: issue.title, item: canonical }] };
 
@@ -77,7 +79,7 @@ export default async function IssuePage({ params }: Props) {
           {footerSponsorships.map((item) => <SponsorshipBlock key={item.id} sponsorship={item} compact />)}
         </section>
 
-        <aside className="issue-subscribe"><p className="eyebrow">Bir sonraki sayı</p><h2>{newsletter.name}</h2><p>{newsletter.schedule}{newsletter.deliveryTime ? ` · ${newsletter.deliveryTime}` : ""}</p><SubscribeForm newsletterName={newsletter.name} newsletterSlugs={[newsletter.slug]} compact /></aside>
+        <aside className="issue-subscribe"><p className="eyebrow">Bir sonraki sayı</p><h2>{newsletter.name}</h2><p>{newsletter.schedule}{newsletter.deliveryTime ? ` · ${newsletter.deliveryTime}` : ""}</p><NewsletterSubscribeAction newsletterName={newsletter.name} newsletterSlug={newsletter.slug} authenticated={Boolean(session)} verified={Boolean(session?.account.email_verified)} subscribed={subscribed} compact source="issue_page" /></aside>
       </div>
 
       {items.length > 0 && <section className="section page-shell issue-related"><div className="section-heading section-heading--rule"><div><p className="eyebrow">Bu sayıdan</p><h2>İçerik kartları</h2></div></div><div className="article-grid article-grid--three">{items.slice(0, 3).map((item) => <ArticleCard key={item.slug} article={item} />)}</div></section>}
