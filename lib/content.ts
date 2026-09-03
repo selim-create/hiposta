@@ -13,10 +13,11 @@ export type ApiContentItem = {
   publication: { slug: string; name: string }; category: { slug: string; name: string; short_name: string } | null;
   newsletter: { slug: string; name: string } | null; body_html?: string | null; locked?: boolean; sponsorships?: ApiSponsorship[];
 };
-type ApiListResponse = { data: ApiContentItem[] };
+export type PaginationMeta = { page: number; per_page: number; total: number; total_pages: number; has_next: boolean; has_previous: boolean };
+type ApiListResponse = { data: ApiContentItem[]; pagination?: PaginationMeta };
 type ApiDetailResponse = { data: ApiContentItem };
-export type ContentFilters = { publication?: string; category?: string; newsletter?: string; premium?: boolean; limit?: number };
-export type ContentSnapshot = { articles: Article[]; source: "core" | "mock" | "unavailable" };
+export type ContentFilters = { publication?: string; category?: string; newsletter?: string; premium?: boolean; limit?: number; page?: number; perPage?: number };
+export type ContentSnapshot = { articles: Article[]; source: "core" | "mock" | "unavailable"; pagination?: PaginationMeta };
 
 const stripHtml = (value: string) => value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 function normalizedDate(value: string | null | undefined): Date { if (!value) return new Date(0); const iso = value.includes("T") ? value : `${value.replace(" ", "T")}Z`; const parsed = new Date(iso); return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed; }
@@ -39,7 +40,7 @@ export function mapApiArticle(item: ApiContentItem): Article {
 }
 
 function safeMockArticle(item: Article): Article { const teaser = item.body[0] ?? item.dek; return { ...item, id: undefined, teaserHtml: `<p>${teaser}</p>`, bodyHtml: item.premium ? null : item.body.map((paragraph) => `<p>${paragraph}</p>`).join(""), locked: item.premium, body: item.premium ? [] : item.body, sponsorships: [] }; }
-function filterMock(filters: ContentFilters): Article[] { return mockArticles.filter((item) => !filters.publication || item.publicationSlug === filters.publication).filter((item) => !filters.category || item.categorySlug === filters.category || (filters.category === "saglik-iyi-yasam" && item.categorySlug === "iyi-yasam")).filter((item) => !filters.newsletter || item.relatedNewsletterSlug === filters.newsletter).filter((item) => filters.premium === undefined || item.premium === filters.premium).slice(0, Math.min(50, Math.max(1, filters.limit ?? 20))).map(safeMockArticle); }
+function filterMock(filters: ContentFilters): Article[] { return mockArticles.filter((item) => !filters.publication || item.publicationSlug === filters.publication).filter((item) => !filters.category || item.categorySlug === filters.category || (filters.category === "saglik-iyi-yasam" && item.categorySlug === "iyi-yasam")).filter((item) => !filters.newsletter || item.relatedNewsletterSlug === filters.newsletter).filter((item) => filters.premium === undefined || item.premium === filters.premium).slice(0, Math.min(100, Math.max(1, filters.perPage ?? filters.limit ?? 20))).map(safeMockArticle); }
 
 export async function getContent(filters: ContentFilters = {}): Promise<ContentSnapshot> {
   const params = new URLSearchParams();
@@ -47,13 +48,15 @@ export async function getContent(filters: ContentFilters = {}): Promise<ContentS
   if (filters.category) params.set("category", filters.category);
   if (filters.newsletter) params.set("newsletter", filters.newsletter);
   if (filters.premium !== undefined) params.set("premium", filters.premium ? "true" : "false");
-  params.set("limit", String(Math.min(50, Math.max(1, filters.limit ?? 20))));
+  if (filters.page) params.set("page", String(Math.max(1, filters.page)));
+  if (filters.perPage) params.set("per_page", String(Math.min(100, Math.max(1, filters.perPage))));
+  else params.set("limit", String(Math.min(100, Math.max(1, filters.limit ?? 20))));
 
   try {
     const response = await fetchPublicCore(`${CORE_BASE_URL}/content?${params.toString()}`, publicCoreFetchInit());
     if (!response.ok) throw new Error(`Hiposta Core content returned ${response.status}`);
     const payload = (await response.json()) as ApiListResponse;
-    return { articles: payload.data.map(mapApiArticle), source: "core" };
+    return { articles: payload.data.map(mapApiArticle), source: "core", pagination: payload.pagination };
   } catch (error) {
     if (allowDevelopmentMockFallback()) {
       console.warn("Hiposta Core content unavailable; explicit development mock fallback enabled.", error);
@@ -62,6 +65,19 @@ export async function getContent(filters: ContentFilters = {}): Promise<ContentS
     console.error("Hiposta Core content unavailable; returning no fabricated content.", error);
     return { articles: [], source: "unavailable" };
   }
+}
+
+export async function getAllContent(filters: Omit<ContentFilters, "limit" | "page" | "perPage"> = {}): Promise<ContentSnapshot> {
+  const first = await getContent({ ...filters, page: 1, perPage: 100 });
+  if (first.source !== "core" || !first.pagination || first.pagination.total_pages <= 1) return first;
+
+  const articles = [...first.articles];
+  for (let page = 2; page <= first.pagination.total_pages; page += 1) {
+    const snapshot = await getContent({ ...filters, page, perPage: 100 });
+    if (snapshot.source !== "core") return { articles, source: "unavailable", pagination: first.pagination };
+    articles.push(...snapshot.articles);
+  }
+  return { articles, source: "core", pagination: first.pagination };
 }
 
 export async function getContentArticle(slug: string): Promise<Article | null> {
@@ -98,4 +114,4 @@ export async function getContentArticleForSession(slug: string): Promise<Article
   }
 }
 
-export async function searchContent(query: string): Promise<Article[]> { const normalized = query.trim().toLocaleLowerCase("tr-TR"); if (!normalized) return []; const { articles } = await getContent({ limit: 50 }); return articles.filter((item) => [item.title, item.dek, item.author, item.publicationName, item.categoryName, ...item.tags].filter(Boolean).join(" ").toLocaleLowerCase("tr-TR").includes(normalized)); }
+export async function searchContent(query: string): Promise<Article[]> { const normalized = query.trim().toLocaleLowerCase("tr-TR"); if (!normalized) return []; const { articles } = await getAllContent(); return articles.filter((item) => [item.title, item.dek, item.author, item.publicationName, item.categoryName, ...item.tags].filter(Boolean).join(" ").toLocaleLowerCase("tr-TR").includes(normalized)); }

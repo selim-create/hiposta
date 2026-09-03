@@ -1,31 +1,13 @@
 import type { MetadataRoute } from "next";
 import { getCatalog } from "@/lib/catalog";
-import { getContent } from "@/lib/content";
-import { getNewsletterIssues } from "@/lib/issues";
+import { getAllContent } from "@/lib/content";
+import { getAllNewsletterIssues } from "@/lib/issues";
 import { absoluteUrl } from "@/lib/seo";
-import type { Article } from "@/lib/types";
 
 function validDate(value?: string): Date | undefined {
   if (!value) return undefined;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) || date.getTime() === 0 ? undefined : date;
-}
-
-function uniqueArticles(groups: Article[][]): Article[] {
-  const bySlug = new Map<string, Article>();
-  for (const group of groups) {
-    for (const article of group) {
-      const current = bySlug.get(article.slug);
-      if (!current || new Date(article.updatedAt || article.publishedAt).getTime() > new Date(current.updatedAt || current.publishedAt).getTime()) {
-        bySlug.set(article.slug, article);
-      }
-    }
-  }
-  return Array.from(bySlug.values());
-}
-
-function pause(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -56,21 +38,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const activePublicationSlugs = new Set(activePublications.map((item) => item.slug));
   const activeNewsletters = catalog.newsletters.filter((item) => activePublicationSlugs.has(item.publicationSlug));
 
-  const [recentContent, issues] = await Promise.all([getContent({ limit: 50 }), getNewsletterIssues()]);
-  const contentGroups: Article[][] = recentContent.source === "core" ? [recentContent.articles] : [];
-
-  // The Core content endpoint currently caps each request at 50 items. Only expand
-  // publication-by-publication when the global result actually hits that cap.
-  // Fetch sequentially with a tiny pause so sitemap generation does not burst the API.
-  if (recentContent.source === "core" && recentContent.articles.length >= 50) {
-    for (const publication of activePublications) {
-      const snapshot = await getContent({ publication: publication.slug, limit: 50 });
-      if (snapshot.source === "core") contentGroups.push(snapshot.articles);
-      await pause(75);
-    }
-  }
-
-  const articles = uniqueArticles(contentGroups);
+  const [content, issues] = await Promise.all([getAllContent(), getAllNewsletterIssues()]);
+  const articles = content.source === "core" ? content.articles : [];
   const activeCategorySlugs = new Set([
     ...activePublications.map((item) => item.categorySlug),
     ...activeNewsletters.map((item) => item.categorySlug),
