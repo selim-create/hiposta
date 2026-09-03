@@ -38,9 +38,10 @@ export default async function NewsletterPage({ params }: Props) {
 
   const recentArticles = content.articles.slice(0, 3);
   const crossSell = catalog.newsletters.filter((item) => item.slug !== newsletter.slug && item.categorySlug !== newsletter.categorySlug).slice(0, 3);
+  const activeSubscriptions = new Set(session?.subscriptions.filter((item) => item.status === "active").map((item) => item.newsletter_slug) ?? []);
   const style = { "--newsletter-hero": newsletter.accent, "--newsletter-ink": publication.foreground } as CSSProperties;
   const indexable = publication.status === "active" && !publication.isComingSoon;
-  const subscribed = Boolean(session?.subscriptions.some((item) => item.newsletter_slug === newsletter.slug && item.status === "active"));
+  const subscribed = activeSubscriptions.has(newsletter.slug);
   const collectionSchema = indexable ? {
     "@context": "https://schema.org", "@type": "CollectionPage", name: newsletter.name, description: newsletter.longDescription,
     url: absoluteUrl(`/bultenler/${newsletter.slug}`), inLanguage: "tr-TR", isPartOf: { "@type": "WebSite", name: "Hiposta", url: absoluteUrl("/") },
@@ -96,7 +97,7 @@ export default async function NewsletterPage({ params }: Props) {
 
       {recentArticles.length > 0 && <section className="section page-shell"><div className="section-heading section-heading--rule"><div><p className="eyebrow">Son içerikler</p><h2>{publication.name} okuma listesi</h2></div></div><div className="article-grid article-grid--three">{recentArticles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div></section>}
 
-      <section className="cross-sell-section"><div className="page-shell"><div className="section-heading section-heading--rule"><div><p className="eyebrow">İlgini çekebilir</p><h2>Akışına bir konu daha ekle</h2></div><Link href="/bultenler">Tümünü gör <ArrowRight size={15} /></Link></div><div className="newsletter-grid">{crossSell.map((item) => <NewsletterCard key={item.slug} newsletter={item} publication={catalog.publications.find((candidate) => candidate.slug === item.publicationSlug)} />)}</div></div></section>
+      <section className="cross-sell-section"><div className="page-shell"><div className="section-heading section-heading--rule"><div><p className="eyebrow">İlgini çekebilir</p><h2>Akışına bir konu daha ekle</h2></div><Link href="/bultenler">Tümünü gör <ArrowRight size={15} /></Link></div><div className="newsletter-grid">{crossSell.map((item) => <NewsletterCard key={item.slug} newsletter={item} publication={catalog.publications.find((candidate) => candidate.slug === item.publicationSlug)} showSubscriptionAction authenticated={Boolean(session)} verified={Boolean(session?.account.email_verified)} subscribed={activeSubscriptions.has(item.slug)} source="newsletter_cross_sell" />)}</div></div></section>
     </>
   );
 }
