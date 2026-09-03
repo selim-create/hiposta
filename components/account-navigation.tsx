@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, Clock3, Compass, Mail, ShieldCheck, UserRound, LayoutDashboard } from "lucide-react";
+import { Bookmark, Clock3, Compass, Crown, Mail, ShieldCheck, UserRound, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,6 +10,7 @@ const items = [
   { href: "/hesabim/kaydettiklerim", label: "Kaydettiklerim", icon: Bookmark },
   { href: "/hesabim/okuma-gecmisi", label: "Okuma Geçmişi", icon: Clock3 },
   { href: "/hesabim/bultenler", label: "Bültenler", icon: Mail },
+  { href: "/hesabim/uyelik", label: "Üyelik", icon: Crown },
   { href: "/hesabim/profil", label: "Profil", icon: UserRound },
   { href: "/hesabim/guvenlik", label: "Güvenlik", icon: ShieldCheck },
 ];
