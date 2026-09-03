@@ -2,6 +2,7 @@
 
 import { FormEvent, useId, useState } from "react";
 import { ArrowRight, Check, LoaderCircle, Mail } from "lucide-react";
+import Link from "next/link";
 
 type Props = {
   publicationSlug: string;
@@ -57,6 +58,7 @@ export function WaitlistForm({ publicationSlug, publicationName }: Props) {
         <input id={consentId} name="consent" type="checkbox" required disabled={state === "loading"} />
         <span>Bu yayının açılışı ve ilgili Hiposta duyuruları için ileti almayı kabul ediyorum.</span>
       </label>
+      <p className="legal-inline-notice">Bekleme listesi verilerinin işlenmesini <Link href="/kvkk-aydinlatma-metni" target="_blank">KVKK Aydınlatma Metni</Link> ve <Link href="/gizlilik-politikasi" target="_blank">Gizlilik Politikası</Link> açıklar.</p>
       {state === "error" && <p className="form-feedback form-feedback--error" role="alert">{message}</p>}
     </form>
   );

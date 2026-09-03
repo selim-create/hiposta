@@ -24,6 +24,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/duzeltme-politikasi"), changeFrequency: "yearly", priority: 0.35 },
     { url: absoluteUrl("/reklam-ve-sponsorluk-ilkeleri"), changeFrequency: "yearly", priority: 0.35 },
     { url: absoluteUrl("/yapay-zeka-ilkeleri"), changeFrequency: "yearly", priority: 0.35 },
+    { url: absoluteUrl("/gizlilik-politikasi"), changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/kvkk-aydinlatma-metni"), changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/cerez-politikasi"), changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/kullanim-kosullari"), changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/uyelik-ve-abonelik-kosullari"), changeFrequency: "yearly", priority: 0.3 },
   ];
 
   if (catalog.source !== "core" || content.source !== "core") return fixed;

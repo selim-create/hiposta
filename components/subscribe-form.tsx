@@ -2,6 +2,7 @@
 
 import { FormEvent, useId, useState } from "react";
 import { ArrowRight, Check, LoaderCircle, Mail } from "lucide-react";
+import Link from "next/link";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type SubscribeFormProps = {
@@ -73,8 +74,9 @@ export function SubscribeForm({ newsletterName, newsletterSlugs, dark = false, c
       </div>
       <label className="consent" htmlFor={consentId}>
         <input id={consentId} name="consent" type="checkbox" required disabled={state === "loading"} />
-        <span>Hiposta’nın seçtiğim bültenleri ve ilgili üyelik iletilerini göndermesini kabul ediyorum.</span>
+        <span>Seçtiğim bültenler için Hiposta’dan e-posta ile ileti almayı kabul ediyorum.</span>
       </label>
+      <p className="legal-inline-notice">Abonelik verilerinin işlenmesini <Link href="/kvkk-aydinlatma-metni" target="_blank">KVKK Aydınlatma Metni</Link>, abonelik kurallarını <Link href="/uyelik-ve-abonelik-kosullari" target="_blank">Üyelik ve Abonelik Koşulları</Link> açıklar.</p>
       {state === "error" && <p className="form-feedback form-feedback--error" role="alert">{message}</p>}
     </form>
   );

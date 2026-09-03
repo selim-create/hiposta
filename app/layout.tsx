@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { JsonLd } from "@/components/json-ld";
+import { PrivacyConsentCenter } from "@/components/privacy-consent";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { absoluteUrl, getSiteUrl, SITE_DESCRIPTION } from "@/lib/seo";
@@ -17,6 +18,7 @@ import "./sponsorship-v1.css";
 import "./personalisation-v1.css";
 import "./personalised-discovery-v1.css";
 import "./trust-corporate-v1.css";
+import "./privacy-consent-v1.css";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -70,6 +72,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SiteHeader />
         <main id="main-content">{children}</main>
         <SiteFooter />
+        <PrivacyConsentCenter />
       </body>
     </html>
   );

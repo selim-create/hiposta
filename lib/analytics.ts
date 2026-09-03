@@ -1,3 +1,5 @@
+import { hasAnalyticsConsent } from "@/lib/privacy-consent";
+
 export type AnalyticsEventType =
   | "content_view"
   | "content_save"
@@ -42,7 +44,7 @@ function uuid(): string {
 }
 
 function anonymousId(): string {
-  if (typeof window === "undefined") return "";
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return "";
   try {
     const existing = window.localStorage.getItem(ANONYMOUS_KEY);
     if (existing) return existing;
@@ -75,7 +77,7 @@ function payloadFor(event: AnalyticsEventInput) {
 }
 
 export async function trackAnalyticsEvents(events: AnalyticsEventInput[]): Promise<void> {
-  if (typeof window === "undefined" || !events.length) return;
+  if (typeof window === "undefined" || !events.length || !hasAnalyticsConsent()) return;
   try {
     await fetch("/api/analytics", {
       method: "POST",
@@ -94,13 +96,13 @@ export function trackAnalyticsEvent(event: AnalyticsEventInput): void {
 }
 
 export function shouldTrackContentView(contentId: number): boolean {
-  if (typeof window === "undefined" || contentId <= 0) return false;
+  if (typeof window === "undefined" || contentId <= 0 || !hasAnalyticsConsent()) return false;
   const key = `${VIEW_PREFIX}${contentId}`;
   const now = Date.now();
   try {
-    const last = Number(window.localStorage.getItem(key) || "0");
+    const last = Number(window.sessionStorage.getItem(key) || "0");
     if (last && now - last < THIRTY_MINUTES) return false;
-    window.localStorage.setItem(key, String(now));
+    window.sessionStorage.setItem(key, String(now));
     return true;
   } catch {
     return true;

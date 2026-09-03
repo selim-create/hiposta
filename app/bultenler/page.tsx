@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { NewsletterAccountManager } from "@/components/newsletter-account-manager";
 import { NewsletterGuestWizard } from "@/components/newsletter-guest-wizard";
 import { getAuthSession } from "@/lib/auth";
@@ -49,7 +50,10 @@ export default async function NewslettersPage() {
             publications={catalog.publications}
           />
         ) : (
-          <NewsletterGuestWizard categories={catalog.categories} newsletters={catalog.newsletters} bundles={catalog.bundles} publications={catalog.publications} />
+          <>
+            <NewsletterGuestWizard categories={catalog.categories} newsletters={catalog.newsletters} bundles={catalog.bundles} publications={catalog.publications} />
+            <p className="legal-inline-notice legal-inline-notice--wizard">Bülten seçimi sırasında verdiğin e-posta ve tercihlerin nasıl işlendiğini <Link href="/kvkk-aydinlatma-metni" target="_blank">KVKK Aydınlatma Metni</Link>, abonelik kurallarını <Link href="/uyelik-ve-abonelik-kosullari" target="_blank">Üyelik ve Abonelik Koşulları</Link> açıklar.</p>
+          </>
         )}
       </section>
     </>

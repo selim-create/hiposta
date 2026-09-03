@@ -74,7 +74,10 @@ export function AuthForm({ mode, nextPath = "/hesabim" }: { mode: "login" | "reg
       <label>E-posta adresin<input name="email" type="email" autoComplete="email" placeholder="sen@ornek.com" required disabled={state === "loading"} /></label>
       <label>Şifren<input name="password" type="password" autoComplete={isRegister ? "new-password" : "current-password"} minLength={10} placeholder="En az 10 karakter" required disabled={state === "loading"} /></label>
       {!isRegister && <div className="auth-form__recovery"><Link href="/sifremi-unuttum">Şifremi unuttum</Link></div>}
-      {isRegister && <label className="consent"><input type="checkbox" required disabled={state === "loading"} /><span>Üyelik sözleşmesini ve kişisel veri bilgilendirmesini okudum.</span></label>}
+      {isRegister && <>
+        <label className="consent"><input type="checkbox" required disabled={state === "loading"} /><span><Link href="/uyelik-ve-abonelik-kosullari" target="_blank">Üyelik ve Abonelik Koşulları</Link> ile <Link href="/kullanim-kosullari" target="_blank">Kullanım Koşulları</Link>nı kabul ediyorum.</span></label>
+        <p className="legal-inline-notice">Hesap verilerinin nasıl işlendiğini <Link href="/kvkk-aydinlatma-metni" target="_blank">KVKK Aydınlatma Metni</Link> ve <Link href="/gizlilik-politikasi" target="_blank">Gizlilik Politikası</Link> açıklar.</p>
+      </>}
       <button className="button button--primary auth-form__submit" type="submit" disabled={state === "loading"}>
         {state === "loading" ? <><LoaderCircle size={16} className="spin" /> İşleniyor</> : <>{isRegister ? "Ücretsiz hesap oluştur" : "Giriş yap"} <ArrowRight size={16} /></>}
       </button>
