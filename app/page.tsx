@@ -10,6 +10,13 @@ import { PublicationMark } from "@/components/publication-mark";
 import { getAuthSession } from "@/lib/auth";
 import { getCatalog } from "@/lib/catalog";
 import { getContent } from "@/lib/content";
+import { publicMetadata, SITE_DESCRIPTION } from "@/lib/seo";
+
+export const metadata = publicMetadata({
+  title: "İlgi alanın kadar posta",
+  description: SITE_DESCRIPTION,
+  path: "/",
+});
 
 export default async function HomePage() {
   const [catalog, content, session] = await Promise.all([getCatalog(), getContent({ limit: 20 }), getAuthSession()]);
