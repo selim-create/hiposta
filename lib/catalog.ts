@@ -24,6 +24,7 @@ function mapNewsletter(item: ApiNewsletter): Newsletter { return { slug: item.sl
 function mapBundle(item: ApiBundle): NewsletterBundle { return { slug: item.slug, name: item.name, eyebrow: item.eyebrow || "Hazır seçim", description: item.description || "", newsletterSlugs: item.newsletter_slugs || [], accent: item.accent_color || "#3157ff", featured: item.featured }; }
 function mockSnapshot(): CatalogSnapshot { return { categories: mockCategories, publications: mockPublications.map((item) => ({ ...item, status: "active" as const, isComingSoon: false })), newsletters: mockNewsletters, bundles: mockBundles, stats: { publications: mockPublications.length, activePublications: mockPublications.length, comingSoonPublications: 0, activeNewsletters: mockNewsletters.length, categories: mockCategories.length, bundles: mockBundles.length }, meta: { revision: "mock", generatedAt: new Date(0).toISOString(), coreVersion: "mock" }, source: "mock" }; }
 function unavailableSnapshot(): CatalogSnapshot { return { categories: [], publications: [], newsletters: [], bundles: [], stats: { publications: 0, activePublications: 0, comingSoonPublications: 0, activeNewsletters: 0, categories: 0, bundles: 0 }, meta: { revision: "unavailable", generatedAt: new Date().toISOString(), coreVersion: "unavailable" }, source: "unavailable" }; }
+function catalogWarning(error: unknown) { const message = error instanceof Error ? error.message : String(error); console.warn(`[Hiposta] Core catalog unavailable; rendering without fabricated catalog. ${message}`); }
 
 export async function getCatalog(): Promise<CatalogSnapshot> {
   try {
@@ -34,7 +35,7 @@ export async function getCatalog(): Promise<CatalogSnapshot> {
     return { categories: data.categories.map(mapCategory), publications: data.publications.map(mapPublication), newsletters: data.newsletters.map(mapNewsletter), bundles: data.bundles.map(mapBundle), stats: { publications: data.stats.publications, activePublications: data.stats.active_publications, comingSoonPublications: data.stats.coming_soon_publications, activeNewsletters: data.stats.active_newsletters, categories: data.stats.categories, bundles: data.stats.bundles }, meta: { revision: payload.meta?.revision ?? "unknown", generatedAt: payload.meta?.generated_at ?? new Date().toISOString(), coreVersion: payload.meta?.core_version ?? "unknown" }, source: "core" };
   } catch (error) {
     if (allowDevelopmentMockFallback()) { console.warn("Hiposta Core catalog unavailable; explicit development mock fallback enabled.", error); return mockSnapshot(); }
-    console.error("Hiposta Core catalog unavailable; returning no fabricated catalog.", error);
+    catalogWarning(error);
     return unavailableSnapshot();
   }
 }
