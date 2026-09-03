@@ -39,7 +39,7 @@ export function NewsletterCard({ newsletter, publication: suppliedPublication, s
           <ArrowUpRight size={16} />
         </Link>
       </div>
-      {showSubscriptionAction && <NewsletterSubscribeAction newsletterName={newsletter.name} newsletterSlug={newsletter.slug} authenticated={authenticated} verified={verified} subscribed={subscribed} compact source={source} />}
+      {showSubscriptionAction && <NewsletterSubscribeAction newsletterName={newsletter.name} newsletterSlug={newsletter.slug} authenticated={authenticated} verified={verified} subscribed={subscribed} compact source={source} anonymousMode="link" />}
     </article>
   );
 }
