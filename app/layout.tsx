@@ -13,6 +13,7 @@ import "./auth-recovery-v1.css";
 import "./premium-article-fix.css";
 import "./content-experience-v2.css";
 import "./newsletter-wizard-v2.css";
+import "./newsletter-wizard-v5.css";
 import "./newsletter-account-manager.css";
 import "./newsletter-growth-v2.css";
 import "./sponsorship-v1.css";
