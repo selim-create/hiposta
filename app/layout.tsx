@@ -58,7 +58,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     "@type": "Organization",
     name: "Hiposta",
     url: absoluteUrl("/"),
-    logo: absoluteUrl("/hiposta-logo.svg"),
+    logo: absoluteUrl("/brand/hiposta-wordmark-dark.png"),
   };
   const website = {
     "@context": "https://schema.org",
