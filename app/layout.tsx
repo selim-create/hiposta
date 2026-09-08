@@ -9,6 +9,7 @@ import "./newsletter-issues.css";
 import "./visual-foundation-v2.css";
 import "./product-surfaces-v2.css";
 import "./account-v1.css";
+import "./account-verification-v1.css";
 import "./auth-recovery-v1.css";
 import "./premium-article-fix.css";
 import "./content-experience-v2.css";
