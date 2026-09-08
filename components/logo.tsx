@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 type LogoProps = {
@@ -7,14 +8,13 @@ type LogoProps = {
 };
 
 function Wordmark({ inverse = false, compact = false }: Omit<LogoProps, "linked">) {
+  const src = inverse ? "/brand/hiposta-wordmark-light.svg" : "/brand/hiposta-wordmark-dark.svg";
+  const width = compact ? 138 : 168;
+  const height = compact ? 39 : 47;
+
   return (
     <span className={`wordmark${inverse ? " wordmark--inverse" : ""}${compact ? " wordmark--compact" : ""}`}>
-      <span className="wordmark__name" aria-label="Hiposta">
-        <span>hip</span>
-        <span className="wordmark__stamp" aria-hidden="true">o</span>
-        <span>sta</span>
-        <span className="wordmark__dot" aria-hidden="true">.</span>
-      </span>
+      <Image src={src} alt="Hiposta" width={width} height={height} priority={!compact} />
       {!compact && <span className="wordmark__descriptor">Hip Medya bülten platformu</span>}
     </span>
   );
