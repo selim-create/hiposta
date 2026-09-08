@@ -93,25 +93,24 @@ export function NewsletterAccountManager({ email, verified, activeSlugs, newslet
     setFeedback("");
 
     try {
-      for (const change of changes) {
-        const response = await fetch(`/api/auth/preferences/newsletters/${encodeURIComponent(change.slug)}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subscribed: change.subscribed }),
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || payload?.ok !== true) {
-          const code = String(payload?.code || "update_failed");
-          if (code === "verification_required") throw new Error("verification_required");
-          if (code === "suppressed") throw new Error("suppressed");
-          throw new Error("update_failed");
-        }
+      const response = await fetch("/api/auth/preferences/newsletters/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ changes }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload?.ok !== true) {
+        const code = String(payload?.code || "update_failed");
+        if (code === "verification_required") throw new Error("verification_required");
+        if (code === "suppressed") throw new Error("suppressed");
+        throw new Error("update_failed");
       }
 
       const synced = await resyncFromServer();
       if (!synced) setSaved(selected);
       setState("success");
-      setFeedback("Bülten tercihlerin güncellendi.");
+      const count = Number(payload?.count || changes.length);
+      setFeedback(count > 1 ? `${count} bülten tercihin tek işlemde güncellendi.` : "Bülten tercihin güncellendi.");
     } catch (error) {
       const code = error instanceof Error ? error.message : "update_failed";
       const synced = await resyncFromServer();
@@ -122,7 +121,7 @@ export function NewsletterAccountManager({ email, verified, activeSlugs, newslet
           : code === "suppressed"
             ? "Bu e-posta adresi gönderim engelinde olduğu için yeniden abonelik açılamıyor."
             : synced
-              ? "Bazı değişiklikler tamamlanamadı. Güncel abonelik durumun sunucudan yeniden yüklendi; tekrar deneyebilirsin."
+              ? "Değişiklikler tamamen tamamlanamadı. Güncel abonelik durumun sunucudan yeniden yüklendi; tekrar deneyebilirsin."
               : "Tercihler tamamen güncellenemedi. Sayfayı yenileyip mevcut durumu kontrol ederek tekrar deneyebilirsin.",
       );
     }
