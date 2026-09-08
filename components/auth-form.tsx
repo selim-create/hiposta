@@ -45,8 +45,13 @@ export function AuthForm({ mode, nextPath = "/hesabim" }: { mode: "login" | "reg
       if (isRegister) {
         setState("success");
         setFeedback(data?.delivery_available === false
-          ? "Hesabın oluşturuldu. Doğrulama bağlantısı hazırlandı; e-posta gönderimi geliştirme ortamında henüz aktif değil. Hesabına giriş yapabilirsin."
-          : "Hesabın oluşturuldu. E-posta adresine gelen doğrulama bağlantısını aç.");
+          ? "Hesabın oluşturuldu. E-posta doğrulaması tamamlanana kadar üyelik ve kişiselleştirme özellikleri etkinleşmez."
+          : "Hesabın oluşturuldu. E-posta adresine gönderdiğimiz doğrulama bağlantısını açarak hesabını tamamla.");
+        return;
+      }
+
+      if (data?.account?.email_verified === false) {
+        window.location.assign("/hesabim/guvenlik?verification=pending");
         return;
       }
 
