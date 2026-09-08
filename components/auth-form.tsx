@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { ArrowRight, CheckCircle2, LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const messages: Record<string, string> = {
   invalid_email: "Geçerli bir e-posta adresi gir.",
@@ -14,6 +15,7 @@ const messages: Record<string, string> = {
 };
 
 export function AuthForm({ mode, nextPath = "/hesabim" }: { mode: "login" | "register"; nextPath?: string }) {
+  const router = useRouter();
   const [state, setState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [feedback, setFeedback] = useState("");
   const isRegister = mode === "register";
@@ -51,11 +53,11 @@ export function AuthForm({ mode, nextPath = "/hesabim" }: { mode: "login" | "reg
       }
 
       if (data?.account?.email_verified === false) {
-        window.location.assign("/hesabim/guvenlik?verification=pending");
+        router.push("/hesabim/guvenlik?verification=pending");
         return;
       }
 
-      window.location.assign(nextPath);
+      router.push(nextPath);
     } catch {
       setState("error");
       setFeedback(messages.service_unavailable);
