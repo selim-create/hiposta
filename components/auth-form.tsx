@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { ArrowRight, CheckCircle2, LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const messages: Record<string, string> = {
   invalid_email: "Geçerli bir e-posta adresi gir.",
@@ -14,6 +15,7 @@ const messages: Record<string, string> = {
 };
 
 export function AuthForm({ mode, nextPath = "/hesabim" }: { mode: "login" | "register"; nextPath?: string }) {
+  const router = useRouter();
   const [state, setState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [feedback, setFeedback] = useState("");
   const isRegister = mode === "register";
@@ -45,12 +47,17 @@ export function AuthForm({ mode, nextPath = "/hesabim" }: { mode: "login" | "reg
       if (isRegister) {
         setState("success");
         setFeedback(data?.delivery_available === false
-          ? "Hesabın oluşturuldu. Doğrulama bağlantısı hazırlandı; e-posta gönderimi geliştirme ortamında henüz aktif değil. Hesabına giriş yapabilirsin."
-          : "Hesabın oluşturuldu. E-posta adresine gelen doğrulama bağlantısını aç.");
+          ? "Hesabın oluşturuldu. E-posta doğrulaması tamamlanana kadar üyelik ve kişiselleştirme özellikleri etkinleşmez."
+          : "Hesabın oluşturuldu. E-posta adresine gönderdiğimiz doğrulama bağlantısını açarak hesabını tamamla.");
         return;
       }
 
-      window.location.assign(nextPath);
+      if (data?.account?.email_verified === false) {
+        router.push("/hesabim/guvenlik?verification=pending");
+        return;
+      }
+
+      router.push(nextPath);
     } catch {
       setState("error");
       setFeedback(messages.service_unavailable);

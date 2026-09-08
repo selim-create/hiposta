@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountNavigation } from "@/components/account-navigation";
 import { LogoutButton } from "@/components/logout-button";
@@ -20,6 +21,16 @@ export default async function AccountLayout({ children }: Readonly<{ children: R
         </div>
         <LogoutButton />
       </header>
+      {!session.account.email_verified && (
+        <aside className="account-verification-banner" role="status" aria-live="polite">
+          <div>
+            <span>E-posta doğrulaması bekleniyor</span>
+            <strong>Hesabını tamamlamak için e-posta adresini doğrula.</strong>
+            <p>Doğrulama tamamlanana kadar bülten ve üyelik verilerin hesabına bağlanmaz; kişiselleştirme ve üyelik özellikleri sınırlı kalır.</p>
+          </div>
+          <Link href="/hesabim/guvenlik?verification=pending">Doğrulamayı tamamla →</Link>
+        </aside>
+      )}
       <AccountNavigation />
       <div className="account-module">{children}</div>
     </section>
